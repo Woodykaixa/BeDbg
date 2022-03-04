@@ -1,9 +1,19 @@
 #include "asm.h"
-#include <fmt/core.h>
-
 using namespace BeDbgApi;
 
-Asm::Decoder::Decoder(ZydisMachineMode machineMode, ZydisAddressWidth addressWidth)
+Type::handle_t Asm::CreateDecoder(ZydisMachineMode machineMode, ZydisAddressWidth addressWidth)
 {
-    fmt::print("{} {}\n", machineMode, addressWidth);
+    auto* decoder = new ZydisDecoder;
+    const auto status = ZydisDecoderInit(decoder, machineMode, addressWidth);
+    if (ZYAN_SUCCESS(status))
+    {
+        return decoder;
+    }
+    delete decoder;
+    return nullptr;
+}
+
+void Asm::DestroyDecoder(Type::handle_t decoder)
+{
+    delete static_cast<ZydisDecoder*>(decoder);
 }

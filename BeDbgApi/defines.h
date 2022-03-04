@@ -1,8 +1,8 @@
 #pragma once
 
 #include "env.h"
-#include <cstdint>
 #define EXPORT __declspec(dllexport)
+#define BEDBG_API extern "C" EXPORT
 
 namespace BeDbgApi::Env
 {
@@ -24,6 +24,6 @@ namespace BeDbgApi::Env
 
 namespace BeDbgApi::Type
 {
-    using handle_t = std::uintptr_t;
+    using handle_t = void*;
     static_assert(sizeof(handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
 }

@@ -4,13 +4,6 @@
 
 namespace BeDbgApi::Asm
 {
-    class Decoder
-    {
-    private:
-        ZydisDecoder _decoder;
-
-    public:
-        Decoder(ZydisMachineMode machineMode, ZydisAddressWidth addressWidth);
-
-    };
+    BEDBG_API Type::handle_t CreateDecoder(ZydisMachineMode machineMode, ZydisAddressWidth addressWidth);
+    BEDBG_API void DestroyDecoder(Type::handle_t decoder);
 }
