@@ -1,0 +1,6 @@
+# Add lib files to git
+!*/lib/Debug
+!*/lib/Release
+
+# Also add pdb file
+!*/lib/Debug/*.pdb
