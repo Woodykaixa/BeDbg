@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="api.h" />
     <ClInclude Include="defines.h" />
+    <ClInclude Include="env.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

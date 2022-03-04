@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "../BeDbgApi/api.h"
+#include <api.h>
 
 TEST(TestSumApi, TestPositiveAdd)
 {
