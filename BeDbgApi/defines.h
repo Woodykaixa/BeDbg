@@ -1,7 +1,7 @@
 #pragma once
 
 #include "env.h"
-
+#include <cstdint>
 #define EXPORT __declspec(dllexport)
 
 namespace BeDbgApi::Env
@@ -20,4 +20,10 @@ namespace BeDbgApi::Env
 
     constexpr bool IS_DEBUG = CONFIGURATION == Configuration::DEBUG;
     constexpr bool IS_WIN32 = PLATFORM == Platform::X86;
+}
+
+namespace BeDbgApi::Type
+{
+    using handle_t = std::uintptr_t;
+    static_assert(sizeof(handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
 }
