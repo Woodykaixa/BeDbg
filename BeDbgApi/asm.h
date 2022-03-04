@@ -11,5 +11,6 @@ namespace BeDbgApi::Asm
 
     public:
         Decoder(ZydisMachineMode machineMode, ZydisAddressWidth addressWidth);
+
     };
 }

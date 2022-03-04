@@ -1,7 +1,4 @@
 #include "asm.h"
-#include <WinBase.h>
-#include <processthreadsapi.h>
-#include <fmt/xchar.h>
 #include <Zydis/Decoder.h>
 
 using namespace BeDbgApi;
