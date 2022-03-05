@@ -188,14 +188,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="api.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="env.h" />
     <ClInclude Include="asm.h" />
+    <ClInclude Include="error.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="impl.cpp" />
+    <ClCompile Include="error.cpp" />
     <ClCompile Include="asm.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -18,13 +18,13 @@
     <ClInclude Include="defines.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="api.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="env.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="asm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="error.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,10 +32,10 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="impl.cpp">
+    <ClCompile Include="asm.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="asm.cpp">
+    <ClCompile Include="error.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

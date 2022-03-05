@@ -26,4 +26,11 @@ namespace BeDbgApi::Type
 {
     using handle_t = void*;
     static_assert(sizeof(handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
+
+    enum class Module
+    {
+        SYSTEM = 1,
+        ASM,
+        UNKNOWN
+    };
 }
