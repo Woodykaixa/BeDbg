@@ -8,7 +8,7 @@ using namespace BeDbgApi;
 class TestCreateDecoder : public testing::Test
 {
 protected:
-    std::tuple<std::uint32_t, Error::ExceptionModule> parseErrorCode(std::uint64_t error)
+    static std::tuple<std::uint32_t, Error::ExceptionModule> parseErrorCode(std::uint64_t error)
     {
         const std::uint32_t code = error & 0xFFFFFFFF;
         const auto module = static_cast<Error::ExceptionModule>(error >> 32);
