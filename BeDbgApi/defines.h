@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include "env.h"
+
 #define EXPORT __declspec(dllexport)
 #define BEDBG_API extern "C" EXPORT
 
@@ -26,11 +28,4 @@ namespace BeDbgApi::Type
 {
     using handle_t = void*;
     static_assert(sizeof(handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
-
-    enum class Module
-    {
-        SYSTEM = 1,
-        ASM,
-        UNKNOWN
-    };
 }

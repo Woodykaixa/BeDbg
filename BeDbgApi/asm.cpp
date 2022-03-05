@@ -10,7 +10,7 @@ Type::handle_t Asm::CreateDecoder(ZydisMachineMode machineMode, ZydisAddressWidt
     {
         return decoder;
     }
-    Error::innerError = {Type::Module::ASM, status, "see zydis doc"};
+    Error::innerError = {Error::ExceptionModule::ASM, status, "see zydis doc"};
     delete decoder;
     return nullptr;
 }
