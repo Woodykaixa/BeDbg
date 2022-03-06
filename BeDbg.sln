@@ -18,9 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeDbgClient", "BeDbgClient\
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeDbgClientTests", "BeDbgClientTests\BeDbgClientTests.csproj", "{00E84284-8327-40FB-B397-2228A7155FD4}"
-	ProjectSection(ProjectDependencies) = postProject
-		{73AFCF9D-5655-4136-AD3B-006E6F1B0E9C} = {73AFCF9D-5655-4136-AD3B-006E6F1B0E9C}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
