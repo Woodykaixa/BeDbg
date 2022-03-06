@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using BeDbgClient.Api;
 
 namespace BeDbgClient
 {
@@ -13,5 +14,11 @@ namespace BeDbgClient
 	/// </summary>
 	public partial class App : Application
 	{
+		protected override void OnActivated(EventArgs e)
+		{
+			base.OnActivated(e);
+			using var _ = new Decoder(Decoder.Mode.Long64, Decoder.AddressWidth.Width64);
+		}
+
 	}
 }

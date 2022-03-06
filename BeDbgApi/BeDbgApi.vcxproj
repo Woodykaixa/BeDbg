@@ -120,6 +120,9 @@
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -145,6 +148,9 @@
       <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x86-release\fmt.lib;$(SolutionDir)Dependencies\lib\x86-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x86-release\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -169,6 +175,9 @@
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -194,6 +203,9 @@
       <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x64-release\fmt.lib;$(SolutionDir)Dependencies\lib\x64-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x64-release\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="defines.h" />
@@ -207,6 +219,7 @@
     <ClCompile Include="asm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="copy-dll.ps1" />
     <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

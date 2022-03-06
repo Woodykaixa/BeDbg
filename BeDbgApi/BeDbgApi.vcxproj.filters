@@ -41,5 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="copy-dll.ps1" />
   </ItemGroup>
 </Project>
