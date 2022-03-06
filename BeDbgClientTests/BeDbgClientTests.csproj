@@ -6,6 +6,7 @@
     <Platforms>x86;x64</Platforms>
     <LangVersion>10.0</LangVersion>
     <IsPackable>false</IsPackable>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

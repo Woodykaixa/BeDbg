@@ -7,5 +7,6 @@
     <UseWPF>true</UseWPF>
     <LangVersion>10.0</LangVersion>
     <Platforms>x86;x64</Platforms>
+    <PlatformTarget>$(Platform)</PlatformTarget>
   </PropertyGroup>
 </Project>
