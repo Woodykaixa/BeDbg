@@ -121,7 +121,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -149,7 +149,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -176,7 +176,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -204,7 +204,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net5.0-windows10.0.18362.0"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10.0.19041.0"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
