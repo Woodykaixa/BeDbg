@@ -1,0 +1,31 @@
+{
+  "name": "app",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "node aspnetcore-https.js && cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.2.25"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.21",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
+    "@vitejs/plugin-vue": "^2.2.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.10.0",
+    "eslint-config-import": "^0.13.0",
+    "eslint-config-promise": "^2.0.2",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-define-config": "^1.2.5",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-vue": "^8.5.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.6.2",
+    "vite": "^2.8.0",
+    "vue-tsc": "^0.29.8"
+  }
+}
