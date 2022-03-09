@@ -55,6 +55,10 @@ const apiUrl = process.env.ASPNETCORE_HTTPS_PORT
 
 export default defineConfig({
   plugins: [vue()],
+  esbuild: {
+    jsxFactory: 'h',
+    jsxInject: "import {h} from 'vue';",
+  },
   server: {
     port: 44489,
     https: {

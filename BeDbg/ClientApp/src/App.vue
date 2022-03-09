@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, effect } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
+import { Test } from './components/test';
 const message = ref('Hello world');
 effect(async () => {
   const apiTest = await fetch('/api/test');
@@ -13,6 +14,7 @@ effect(async () => {
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <HelloWorld :msg="message" />
+  <Test />
 </template>
 
 <style>
