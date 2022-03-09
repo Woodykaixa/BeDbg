@@ -1,3 +1,22 @@
+using System.Runtime.InteropServices;
+using System.Security.Principal;
+
+// Check OS Platform and ensure administrator role.
+var name = AppDomain.CurrentDomain.FriendlyName;
+if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+	throw new Exception($"{name} is designed to run on Windows");
+}
+
+using (var identity = WindowsIdentity.GetCurrent())
+{
+	var principal = new WindowsPrincipal(identity);
+	if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+	{
+		throw new Exception($"{name} must be run as administrator");
+	}
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,6 +41,7 @@ app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller}/{action=Index}/{id?}");
 
-app.MapFallbackToFile("index.html"); ;
+app.MapFallbackToFile("index.html");
+;
 
 app.Run();
