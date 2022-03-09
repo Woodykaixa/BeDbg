@@ -2,6 +2,7 @@
 import { ref, effect } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
 import { Test } from './components/test';
+import { NButton } from 'naive-ui';
 const message = ref('Hello world');
 effect(async () => {
   const apiTest = await fetch('/api/test');
@@ -15,6 +16,7 @@ effect(async () => {
   <img alt="Vue logo" src="./assets/logo.png" />
   <HelloWorld :msg="message" />
   <Test />
+  <n-button>naive ui</n-button>
 </template>
 
 <style>
