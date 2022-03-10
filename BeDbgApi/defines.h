@@ -7,10 +7,10 @@
 
 namespace BeDbgApi::Env
 {
-#ifdef WIN32
+#ifndef _WIN64
     constexpr Platform PLATFORM = Platform::X86;
 #else
-	constexpr Platform PLATFORM = Platform::AMD64;
+    constexpr Platform PLATFORM = Platform::AMD64;
 #endif
 
 #ifndef NDEBUG

@@ -1,7 +1,10 @@
 #pragma once
-#include "defines.h"
 #include <string>
 #include <optional>
+
+#include <cstdint>
+
+#include "defines.h"
 
 namespace BeDbgApi::Error
 {
@@ -15,9 +18,9 @@ namespace BeDbgApi::Error
 
     struct Error
     {
-        ExceptionModule module{ExceptionModule::NO_ERROR};
+        ExceptionModule exceptionModule{ExceptionModule::NO_ERROR};
         std::uint32_t code{};
-        std::string message;
+        std::wstring message;
 
         std::uint64_t errorCode();
     };
@@ -27,5 +30,5 @@ namespace BeDbgApi::Error
     BEDBG_API bool HasError();
     BEDBG_API void ClearError();
     BEDBG_API std::uint64_t GetError();
-    BEDBG_API const char* GetErrorMessage();
+    BEDBG_API const wchar_t* GetErrorMessage();
 }

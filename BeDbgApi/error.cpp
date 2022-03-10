@@ -2,7 +2,7 @@
 
 std::uint64_t BeDbgApi::Error::Error::errorCode()
 {
-    return static_cast<std::uint64_t>(module) << 32u | code;
+    return static_cast<std::uint64_t>(exceptionModule) << 32u | code;
 }
 
 bool BeDbgApi::Error::HasError()
@@ -24,7 +24,7 @@ std::uint64_t BeDbgApi::Error::GetError()
     return 0;
 }
 
-const char* BeDbgApi::Error::GetErrorMessage()
+const wchar_t* BeDbgApi::Error::GetErrorMessage()
 {
     if (innerError.has_value())
     {

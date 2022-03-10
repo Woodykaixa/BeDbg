@@ -111,17 +111,18 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <StructMemberAlignment>8Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x86-debug\fmtd.lib;$(SolutionDir)Dependencies\lib\x86-debug\Zycore.lib;$(SolutionDir)Dependencies\lib\x86-debug\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x86-debug\fmtd.lib;$(SolutionDir)Dependencies\lib\x86-debug\Zycore.lib;$(SolutionDir)Dependencies\lib\x86-debug\Zydis.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbg\bin\$(Configuration)\net6.0-windows10" "$(SolutionDir)BeDbgClientTests\bin\$(Configuration)\net6.0-windows10"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -145,11 +146,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x86-release\fmt.lib;$(SolutionDir)Dependencies\lib\x86-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x86-release\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x86-release\fmt.lib;$(SolutionDir)Dependencies\lib\x86-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x86-release\Zydis.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows10" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows10"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbg\bin\$(Configuration)\net6.0-windows10" "$(SolutionDir)BeDbgClientTests\bin\$(Configuration)\net6.0-windows10"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -166,17 +167,18 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <StructMemberAlignment>8Bytes</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x64-debug\fmtd.lib;$(SolutionDir)Dependencies\lib\x64-debug\Zycore.lib;$(SolutionDir)Dependencies\lib\x64-debug\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x64-debug\fmtd.lib;$(SolutionDir)Dependencies\lib\x64-debug\Zycore.lib;$(SolutionDir)Dependencies\lib\x64-debug\Zydis.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbg\bin\$(Configuration)\net6.0-windows" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -200,11 +202,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x64-release\fmt.lib;$(SolutionDir)Dependencies\lib\x64-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x64-release\Zydis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Dependencies\lib\x64-release\fmt.lib;$(SolutionDir)Dependencies\lib\x64-release\Zycore.lib;$(SolutionDir)Dependencies\lib\x64-release\Zydis.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbgClient\bin\x64\$(Configuration)\net6.0-windows" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Unrestricted -File $(ProjectDir)copy-dll.ps1 $(OutDir)$(TargetName)$(TargetExt) "$(SolutionDir)BeDbg\bin\$(Configuration)\net6.0-windows" "$(SolutionDir)BeDbgClientTests\bin\x64\$(Configuration)\net6.0-windows"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
