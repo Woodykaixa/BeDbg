@@ -1,3 +1,4 @@
+import { DirectoryModel, FileModel } from '@/dto/fs';
 import { ProcessModel } from '../dto/process';
 
 export const Api = {
@@ -5,6 +6,14 @@ export const Api = {
     const response = await fetch('/api/process');
     if (response.ok) {
       return (await response.json()) as Array<ProcessModel>;
+    }
+    return null;
+  },
+
+  async getFileList(dir?: string) {
+    const response = await fetch(dir ? `/api/fs/ls?dir=${dir}` : '/api/fs/ls');
+    if (response.ok) {
+      return (await response.json()) as DirectoryModel;
     }
     return null;
   },

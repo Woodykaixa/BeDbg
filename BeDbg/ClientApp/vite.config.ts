@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import * as fs from 'fs';
 import * as path from 'path';
+import { resolve } from 'path';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const certBaseFolder =
   process.env.APPDATA !== undefined && process.env.APPDATA !== ''
@@ -76,5 +77,13 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  resolve: {
+    alias: [
+      {
+        find: '@',
+        replacement: resolve(__dirname, './src'),
+      },
+    ],
   },
 });

@@ -4,6 +4,7 @@ specifiers:
   '@types/node': ^17.0.21
   '@typescript-eslint/eslint-plugin': ^5.14.0
   '@typescript-eslint/parser': ^5.14.0
+  '@vicons/antd': ^0.12.0
   '@vitejs/plugin-vue': ^2.2.0
   cross-env: ^7.0.3
   eslint: ^8.10.0
@@ -21,7 +22,6 @@ specifiers:
   vue: ^3.2.25
   vue-router: '4'
   vue-tsc: ^0.29.8
-  xicons: ^1.0.0
 
 dependencies:
   vue: 3.2.31
@@ -31,6 +31,7 @@ devDependencies:
   '@types/node': 17.0.21
   '@typescript-eslint/eslint-plugin': 5.14.0_f4054b8c3cd621db16ae1b9d571bccc0
   '@typescript-eslint/parser': 5.14.0_eslint@8.10.0+typescript@4.6.2
+  '@vicons/antd': 0.12.0
   '@vitejs/plugin-vue': 2.2.4_vite@2.8.6+vue@3.2.31
   cross-env: 7.0.3
   eslint: 8.10.0
@@ -46,7 +47,6 @@ devDependencies:
   vfonts: 0.0.3
   vite: 2.8.6
   vue-tsc: 0.29.8_typescript@4.6.2
-  xicons: 1.0.0
 
 packages:
 
@@ -326,6 +326,10 @@ packages:
     dependencies:
       '@typescript-eslint/types': 5.14.0
       eslint-visitor-keys: 3.3.0
+    dev: true
+
+  /@vicons/antd/0.12.0:
+    resolution: {integrity: sha512-C0p6aO1EmGG1QHrqgUWQS1No20934OdWSRQshM5NIDK5H1On6tC26U0hT6Rmp40KfUsvhvX5YW8BoWJdNFifPg==}
     dev: true
 
   /@vitejs/plugin-vue/2.2.4_vite@2.8.6+vue@3.2.31:
@@ -3031,10 +3035,6 @@ packages:
     engines: {node: '>=4'}
     dependencies:
       mkdirp: 0.5.5
-    dev: true
-
-  /xicons/1.0.0:
-    resolution: {integrity: sha512-LIEQPAEQA55vRXXZym5RWtO20JC1/nGz02Jvcf2ufT21H2KTGAr8I4zEcoZM/2ADafkYPLROjZw6cKF5mO8Ckw==}
     dev: true
 
   /yallist/4.0.0:
