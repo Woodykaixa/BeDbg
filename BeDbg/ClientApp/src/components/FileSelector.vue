@@ -111,7 +111,7 @@ const debugExe = async () => {
           </n-thing>
         </n-list-item>
       </n-scrollbar>
-      <n-empty v-else description="空文件夹" class="panel-empty"> </n-empty>
+      <n-empty v-else description="无可调试文件" class="panel-empty"> </n-empty>
     </n-list>
   </n-spin>
 </template>
