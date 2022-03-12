@@ -1,11 +1,18 @@
-<template>DebugView: PID: {{ route.params.pid }}</template>
+<template>DebugView: PID: {{ pid }}</template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { onBeforeUnmount, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useNotification } from 'naive-ui';
 
-const route = useRoute();
-onMounted(() => {
-  console.log('route', route.params);
-});
+const router = useRouter();
+const notification = useNotification();
+const pid = parseInt(sessionStorage.getItem('debugPid') ?? '0', 10);
+if (pid === 0) {
+  notification.error({
+    title: '未指定调试进程',
+    content: '请附加或创建一个进程来调试',
+  });
+  router.push('/');
+}
 </script>

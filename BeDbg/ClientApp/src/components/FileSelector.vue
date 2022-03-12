@@ -19,8 +19,6 @@ import { FileModel } from '@/dto/fs';
 import { FileOutlined, FolderOutlined } from '@vicons/antd';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
-
 const cwd = ref('');
 const folders = ref([] as string[]);
 watch(
@@ -54,6 +52,7 @@ const clickBreadcrumb = (index: number) => {
   requestFileList(path);
 };
 
+const router = useRouter();
 const command = ref<InputInst>(null as unknown as InputInst);
 const debugExe = async () => {
   const cmd = command.value.inputElRef!.value;
@@ -65,12 +64,8 @@ const debugExe = async () => {
     console.log('failed');
     return;
   }
-  router.push({
-    name: 'debug',
-    params: {
-      pid: process.id,
-    },
-  });
+  sessionStorage.setItem('debugPid', process.id.toString(10));
+  router.push('/debug');
 };
 </script>
 

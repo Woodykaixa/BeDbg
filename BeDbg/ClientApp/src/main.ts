@@ -16,7 +16,7 @@ createApp(App)
           component: Index,
         },
         {
-          path: '/:pid(\\d+)',
+          path: '/debug',
           name: 'debug',
           component: Debug,
         },

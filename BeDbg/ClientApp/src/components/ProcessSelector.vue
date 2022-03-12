@@ -23,7 +23,8 @@ const selectedPid = ref(0);
 
 const router = useRouter();
 const debugProcess = () => {
-  router.push({ name: 'debug', params: { pid: selectedPid.value } });
+  sessionStorage.setItem('debugPid', selectedPid.value.toString(10));
+  router.push('/debug');
 };
 </script>
 
@@ -41,6 +42,7 @@ const debugProcess = () => {
           v-for="process in processes"
           :key="process.id"
           class="process-item"
+          :class="[process.id === selectedPid ? 'process-item-selected' : '']"
           @click="selectedPid = process.id"
         >
           <n-thing>
@@ -85,7 +87,9 @@ const debugProcess = () => {
   cursor: pointer;
   padding: 4px;
 }
-
+.process-item-selected {
+  background-color: rgba(71, 223, 172, 0.6);
+}
 .process-item:hover {
   background-color: rgba(99, 226, 183, 0.6);
   transition-timing-function: linear;
