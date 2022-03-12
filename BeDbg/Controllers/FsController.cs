@@ -16,8 +16,11 @@ public class FsController : ControllerBase
 			throw new InvalidOperationException($"Cannot create directory info from [{dir}]");
 		}
 
-		var files = directory.GetFileSystemInfos().Select(file =>
-			new FileModel(file.Name, Directory.Exists(file.FullName) ? FileType.Folder : FileType.File, file.FullName));
+		var files = directory.GetFiles("*.exe").Select(file =>
+			new FileModel(file.Name, FileType.File, file.FullName)).ToList();
+		files.AddRange(directory.GetDirectories().Select(directoryInfo =>
+			new FileModel(directoryInfo.Name, FileType.Folder, directoryInfo.FullName)));
+
 		return new DirectoryModel(directory.FullName, files);
 	}
 }

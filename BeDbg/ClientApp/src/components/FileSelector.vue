@@ -63,7 +63,7 @@ watch(
         </n-breadcrumb>
       </template>
       <div style="display: flex; width: 100%; margin-bottom: 8px">
-        <n-input placeholder="启动命令" style="flex: 1%" />
+        <n-input placeholder="启动命令" style="flex: 1%; margin-right: 4px" />
         <n-button :disabled="targetFile === ''">启动</n-button>
       </div>
       <n-scrollbar v-if="files.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
