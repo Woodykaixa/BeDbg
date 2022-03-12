@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Management;
 using System.Diagnostics;
+using BeDbg.Api;
 
 namespace BeDbg.Extensions;
 
@@ -15,5 +16,11 @@ public static class ProcessExtension
 			default:
 				return false;
 		}
+	}
+
+	public static bool IsWow64(this Process process)
+	{
+		Kernel.IsWow64Process(process.Id, out var isWow64);
+		return isWow64;
 	}
 }

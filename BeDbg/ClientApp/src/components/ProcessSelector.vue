@@ -3,6 +3,7 @@ import { ref, effect, onMounted } from 'vue';
 import { NSpace, NList, NListItem, NThing, NScrollbar, NEmpty, NSpin, NTag, NButton } from 'naive-ui';
 import { ProcessModel } from '../dto/process';
 import { Api } from '@/api';
+import { useRouter } from 'vue-router';
 
 const loading = ref(true);
 const processes = ref([] as Array<ProcessModel>);
@@ -19,8 +20,10 @@ const requestProcessList = () => {
 onMounted(requestProcessList);
 
 const selectedPid = ref(0);
-const selectProcess = (pid: number) => {
-  selectedPid.value = pid;
+
+const router = useRouter();
+const debugProcess = () => {
+  router.push({ name: 'debug', params: { pid: selectedPid.value } });
 };
 </script>
 
@@ -30,7 +33,7 @@ const selectProcess = (pid: number) => {
       <template #header>
         <div style="display: flex; justify-content: space-between">
           <div>当前进程</div>
-          <n-button :disabled="selectedPid === 0">附加</n-button>
+          <n-button :disabled="selectedPid === 0" @click="debugProcess">附加</n-button>
         </div>
       </template>
       <n-scrollbar v-if="processes.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
@@ -38,7 +41,7 @@ const selectProcess = (pid: number) => {
           v-for="process in processes"
           :key="process.id"
           class="process-item"
-          @click="selectProcess(process.id)"
+          @click="selectedPid = process.id"
         >
           <n-thing>
             <template #header>

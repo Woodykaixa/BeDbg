@@ -10,6 +10,23 @@ export const Api = {
     return null;
   },
 
+  async createProcess(file: string, command: string) {
+    const response = await fetch('/api/process', {
+      method: 'POST',
+      body: JSON.stringify({
+        file,
+        command,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+    if (response.ok) {
+      return (await response.json()) as ProcessModel;
+    }
+    return null;
+  },
+
   async getFileList(dir?: string) {
     const response = await fetch(dir ? `/api/fs/ls?dir=${dir}` : '/api/fs/ls');
     if (response.ok) {

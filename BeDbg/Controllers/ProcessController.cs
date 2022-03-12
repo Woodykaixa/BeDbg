@@ -11,7 +11,7 @@ namespace BeDbg.Controllers;
 public class ProcessController : ControllerBase
 {
 	[HttpGet]
-	public IEnumerable<ProcessModel> Get()
+	public IEnumerable<ProcessModel> GetProcesses()
 	{
 		using var searcher = new ManagementObjectSearcher(
 			"SELECT CommandLine, ProcessId FROM Win32_Process");
@@ -51,7 +51,18 @@ public class ProcessController : ControllerBase
 
 		return Process.GetProcesses().Where(process => !process.Invisible())
 			.Select(process =>
-				new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, false,
+				new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, process.IsWow64(),
 					getCommand(process.Id)));
+	}
+
+	[HttpPost]
+	public ProcessModel CreateProcess([FromBody] CreateProcessRequest request)
+	{
+		var process = new Process();
+		var startup = new ProcessStartInfo(request.File, request.Command);
+		process.StartInfo = startup;
+		process.Start();
+		return new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, process.IsWow64(),
+			$"{request.File} {request.Command}");
 	}
 }

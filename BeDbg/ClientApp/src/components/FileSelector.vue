@@ -12,16 +12,27 @@ import {
   NBreadcrumb,
   NBreadcrumbItem,
   NInput,
+  InputInst,
 } from 'naive-ui';
 import { Api } from '@/api';
 import { FileModel } from '@/dto/fs';
 import { FileOutlined, FolderOutlined } from '@vicons/antd';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const cwd = ref('');
+const folders = ref([] as string[]);
+watch(
+  () => cwd.value,
+  () => {
+    folders.value = cwd.value.split('\\');
+  }
+);
 
 const loading = ref(true);
 const files = ref([] as Array<FileModel>);
-const cwd = ref('');
 const targetFile = ref('');
-const folders = ref([] as string[]);
 const requestFileList = (dir?: string) => {
   effect(async () => {
     loading.value = true;
@@ -43,13 +54,24 @@ const clickBreadcrumb = (index: number) => {
   requestFileList(path);
 };
 
-watch(
-  () => cwd.value,
-  () => {
-    folders.value = cwd.value.split('\\');
-    console.log('folders', folders.value);
+const command = ref<InputInst>(null as unknown as InputInst);
+const debugExe = async () => {
+  const cmd = command.value.inputElRef!.value;
+  const file = targetFile.value;
+  loading.value = true;
+  const process = await Api.createProcess(file, cmd);
+  loading.value = false;
+  if (!process) {
+    console.log('failed');
+    return;
   }
-);
+  router.push({
+    name: 'debug',
+    params: {
+      pid: process.id,
+    },
+  });
+};
 </script>
 
 <template>
@@ -63,8 +85,8 @@ watch(
         </n-breadcrumb>
       </template>
       <div style="display: flex; width: 100%; margin-bottom: 8px">
-        <n-input placeholder="启动命令" style="flex: 1%; margin-right: 4px" />
-        <n-button :disabled="targetFile === ''">启动</n-button>
+        <n-input placeholder="启动命令" ref="command" style="flex: 1%; margin-right: 4px" />
+        <n-button :disabled="targetFile === ''" @click="debugExe()">启动</n-button>
       </div>
       <n-scrollbar v-if="files.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
         <n-list-item

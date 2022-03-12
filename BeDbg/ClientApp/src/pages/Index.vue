@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NTabs, NTabPane, NConfigProvider } from 'naive-ui';
+import { NTabs, NTabPane } from 'naive-ui';
 import ProcessSelector from '@/components/ProcessSelector.vue';
 import FileSelector from '@/components/FileSelector.vue';
 </script>
@@ -8,7 +8,7 @@ import FileSelector from '@/components/FileSelector.vue';
   <div class="page">
     <div style="display: flex; flex-direction: column; width: 60%">
       <h1 class="title">BeDbg</h1>
-      <n-tabs default-value="attach" type="line">
+      <n-tabs default-value="create" type="line">
         <n-tab-pane name="create" tab="调试文件">
           <file-selector></file-selector>
         </n-tab-pane>

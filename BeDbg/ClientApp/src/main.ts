@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import Index from './pages/Index.vue';
+import Debug from '@/pages/Debug.vue';
 import App from './App.vue';
 import 'vfonts/Lato.css';
 import 'vfonts/FiraCode.css';
@@ -13,6 +14,11 @@ createApp(App)
         {
           path: '/',
           component: Index,
+        },
+        {
+          path: '/:pid(\\d+)',
+          name: 'debug',
+          component: Debug,
         },
       ],
     })
