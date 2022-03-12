@@ -1,4 +1,7 @@
-<template>DebugView: PID: {{ pid }}</template>
+<template>
+  <div>DebugView: PID: {{ pid }}</div>
+  <div @click="stopDebug">stop debug</div>
+</template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, onUnmounted, watch } from 'vue';
@@ -15,4 +18,9 @@ if (pid === 0) {
   });
   router.push('/');
 }
+
+const stopDebug = () => {
+  sessionStorage.removeItem('debugPid');
+  router.push('/');
+};
 </script>
