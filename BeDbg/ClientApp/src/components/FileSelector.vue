@@ -70,8 +70,8 @@ watch(
         <n-list-item
           v-for="file in files"
           :key="file.name"
-          class="process-item"
-          :class="targetFile === file.path ? ['process-item', 'file-item-selected'] : ['process-item']"
+          class="file-item"
+          :class="targetFile === file.path ? ['file-item-selected'] : []"
         >
           <n-thing @click="file.type === 'folder' ? requestFileList(file.path) : (targetFile = file.path)">
             <template #header>
@@ -89,9 +89,7 @@ watch(
           </n-thing>
         </n-list-item>
       </n-scrollbar>
-      <n-empty v-else title="空文件夹" class="panel-empty">
-        <template #extra>空文件夹</template>
-      </n-empty>
+      <n-empty v-else description="空文件夹" class="panel-empty"> </n-empty>
     </n-list>
   </n-spin>
 </template>
@@ -113,7 +111,7 @@ watch(
   justify-content: center;
   pointer-events: none;
 }
-.process-item {
+.file-item {
   cursor: pointer;
   padding: 4px;
 }
@@ -121,7 +119,7 @@ watch(
 .file-item-selected {
   background-color: rgba(71, 223, 172, 0.6);
 }
-.process-item:hover {
+.file-item:hover {
   background-color: rgba(99, 226, 183, 0.6);
   transition-timing-function: linear;
   transition: 0.2s;

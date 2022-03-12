@@ -55,7 +55,7 @@ const selectProcess = (pid: number) => {
           </n-thing>
         </n-list-item>
       </n-scrollbar>
-      <n-empty v-else title="没有获取到进程信息" class="panel-empty">
+      <n-empty v-else description="没有获取到进程信息" class="panel-empty">
         <template #extra> 请尝试使用管理员模式运行 BeDbg </template>
       </n-empty>
     </n-list>
