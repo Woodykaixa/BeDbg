@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <optional>
 
 #include <cstdint>
 
@@ -10,7 +9,7 @@ namespace BeDbgApi::Error
 {
     enum class ExceptionModule:std::uint32_t
     {
-        NO_ERROR,
+        OK_NO_ERROR,
         SYSTEM,
         ASM,
         UNKNOWN
@@ -18,15 +17,14 @@ namespace BeDbgApi::Error
 
     struct Error
     {
-        ExceptionModule exceptionModule{ExceptionModule::NO_ERROR};
+        ExceptionModule exceptionModule{ExceptionModule::OK_NO_ERROR};
         std::uint32_t code{};
         std::wstring message;
 
         std::uint64_t errorCode();
     };
 
-    inline std::optional<Error> innerError;
-
+    BEDBG_API Error* GetInnerError();
     BEDBG_API bool HasError();
     BEDBG_API void ClearError();
     BEDBG_API std::uint64_t GetError();

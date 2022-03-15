@@ -214,11 +214,13 @@
     <ClInclude Include="env.h" />
     <ClInclude Include="asm.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="process.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="asm.cpp" />
+    <ClCompile Include="process.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="copy-dll.ps1" />

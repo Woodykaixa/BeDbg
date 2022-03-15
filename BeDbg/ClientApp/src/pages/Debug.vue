@@ -4,9 +4,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, onUnmounted, watch } from 'vue';
+import { effect, onBeforeUnmount, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useNotification } from 'naive-ui';
+import { Api } from '@/api';
 
 const router = useRouter();
 const notification = useNotification();
@@ -23,4 +24,14 @@ const stopDebug = () => {
   sessionStorage.removeItem('debugPid');
   router.push('/');
 };
+
+effect(async () => {
+  const resp = await Api.readProcessMemory({ pid, address: 0, size: 0 })!;
+  console.log(resp, typeof resp);
+});
+
+onMounted(async () => {
+  const handle = await Api.attachProcess(pid);
+  console.log('handle', handle);
+});
 </script>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Management;
+using BeDbg.Api;
 using BeDbg.Extensions;
 using BeDbg.Models;
 
@@ -14,45 +15,36 @@ public class ProcessController : ControllerBase
 	public IEnumerable<ProcessModel> GetProcesses()
 	{
 		using var searcher = new ManagementObjectSearcher(
-			"SELECT CommandLine, ProcessId FROM Win32_Process");
+			"SELECT Name, CommandLine, ProcessId FROM Win32_Process");
 		using var objects = searcher.Get();
-		var cmdDict = new Dictionary<int, string>(objects.Count);
+		var cmdDict = new Dictionary<int, ProcessModel>(objects.Count);
 		foreach (var obj in objects)
 		{
 			try
 			{
 				var cmd = obj["CommandLine"]?.ToString() ?? string.Empty;
+				var name = obj["Name"]!.ToString() ?? string.Empty;
 				var pid = int.Parse(obj["ProcessId"]?.ToString() ?? "0");
-				if (pid != 0)
+				Kernel.IsWow64Process(pid, out var wow64);
+
+				if (pid is 0 or 4)
 				{
-					cmdDict[pid] = cmd;
+					continue;
+				}
+
+				if (BeDbg64.IsAttachableProcess(pid))
+				{
+					cmdDict[pid] = new ProcessModel(name, pid, "", wow64, cmd);
 				}
 			}
-			catch
+			catch (Exception ex)
 			{
-				// ignored
+				Console.Error.WriteLine(ex);
 			}
 		}
 
-		var getCommand = (int pid) =>
-		{
-			if (!cmdDict.ContainsKey(pid))
-			{
-				using var processSearcher = new ManagementObjectSearcher(
-					$"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {pid}");
-				using var objects = processSearcher.Get();
-				var @object = objects.Cast<ManagementBaseObject>().SingleOrDefault();
-				var cmd = @object?["CommandLine"]?.ToString() ?? string.Empty;
-				cmdDict[pid] = cmd;
-			}
 
-			return cmdDict[pid];
-		};
-
-		return Process.GetProcesses().Where(process => !process.Invisible())
-			.Select(process =>
-				new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, process.IsWow64(),
-					getCommand(process.Id)));
+		return cmdDict.Values;
 	}
 
 	[HttpPost]
@@ -64,5 +56,30 @@ public class ProcessController : ControllerBase
 		process.Start();
 		return new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, process.IsWow64(),
 			$"{request.File} {request.Command}");
+	}
+
+
+	[HttpPost("attach")]
+	public ActionResult<long> AttachProcess([FromBody] int pid)
+	{
+		var handle = Api.BeDbg64.AttachProcess(pid);
+		return new ActionResult<long>(handle.ToInt64());
+	}
+
+	[HttpGet("read")]
+	public FileContentResult ReadProcessMemory([FromQuery] ReadProcessMemoryRequest request)
+	{
+		var span = new byte[10];
+		span[0] = 0x01;
+		span[1] = 0x02;
+		span[2] = 0x03;
+		span[3] = 0x04;
+		span[4] = 0x05;
+		span[5] = 0x06;
+		span[6] = 0x07;
+		span[7] = 0x08;
+		span[8] = 0x09;
+		span[9] = 0x0A;
+		return new FileContentResult(span, "application/octet-stream");
 	}
 }
