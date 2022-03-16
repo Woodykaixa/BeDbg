@@ -22,8 +22,7 @@ async function ParseAndAttachProcess() {
     router.push('/');
     return;
   }
-  const handle = await Api.attachProcess(pid);
-  console.log('handle', handle);
+
 }
 
 onMounted(() => {

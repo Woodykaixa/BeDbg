@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using BeDbg.Filters;
-using BeDbg.Models;
+using BeDbg.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 // Check OS Platform and ensure administrator role.
 var name = AppDomain.CurrentDomain.FriendlyName;
@@ -22,6 +22,7 @@ using (var identity = WindowsIdentity.GetCurrent())
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<DebuggingProcessContext>(opt => opt.UseInMemoryDatabase("DebuggingProcessList"));
 var app = builder.Build();
 app.UseJsonErrorHandler();
 
@@ -35,9 +36,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.MapControllerRoute(
-	name: "default",
-	pattern: "{controller}/{action=Index}/{id?}");
+app.MapControllerRoute("default", "{controller}/{action=Index}/{id?}");
 
 app.MapFallbackToFile("index.html");
 

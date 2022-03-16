@@ -5,3 +5,9 @@ export type ProcessModel = {
   wow64: boolean;
   command: string;
 };
+
+export type DebuggingProcess = {
+  id: number;
+  handle: number;
+  attachTime: Date;
+};

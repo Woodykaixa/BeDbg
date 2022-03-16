@@ -93,7 +93,7 @@ const debugExe = async () => {
       </template>
       <div style="display: flex; width: 100%; margin-bottom: 8px">
         <n-input placeholder="启动命令" ref="command" style="flex: 1%; margin-right: 4px" />
-        <n-button :disabled="targetFile === ''" @click="debugExe()">启动</n-button>
+        <n-button :disabled="targetFile === ''">启动</n-button>
       </div>
       <n-result
         v-if="errorData.hasError"

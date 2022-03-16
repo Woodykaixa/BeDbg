@@ -2,14 +2,34 @@
 import { NTabs, NTabPane, NAlert } from 'naive-ui';
 import ProcessSelector from '@/components/ProcessSelector.vue';
 import FileSelector from '@/components/FileSelector.vue';
-const debugging = sessionStorage.getItem('debugPid') !== null;
+import { effect, reactive, ref } from 'vue';
+import { Api } from '@/api';
 const debugPath = window.location.origin + '/debug';
+
+const debuggingProcess = reactive({
+  length: 0,
+  error: false,
+});
+effect(() => {
+  setTimeout(async () => {
+    const { ok, data } = await Api.DebuggingProcess.list();
+    debuggingProcess.error = !ok;
+    if (ok) {
+      debuggingProcess.length = data.length;
+    } else {
+      debuggingProcess.length = 0;
+    }
+  }, 1000);
+});
 </script>
 
 <template>
   <div class="page">
     <div style="display: flex; flex-direction: column; width: 60%">
-      <n-alert type="info" v-if="debugging"> 你还有进程正在调试中，如果想要继续调试，请打开 {{ debugPath }} </n-alert>
+      <n-alert type="error" v-if="debuggingProcess.error"> 无法请求到调试中进程，请检查网络设置。 </n-alert>
+      <n-alert type="info" v-else-if="debuggingProcess.length !== 0">
+        你还有进程正在调试中，如果想要继续调试，请打开 {{ debugPath }}
+      </n-alert>
       <h1 class="title">BeDbg</h1>
       <n-tabs default-value="create" type="line">
         <n-tab-pane name="create" tab="调试文件">

@@ -1,24 +1,9 @@
 import { ErrorResponse } from '@/dto/error';
 import { DirectoryModel, FileModel } from '@/dto/fs';
 import { ProcessModel } from '../dto/process';
-
+import { DebuggingProcess } from './debuggingProcess';
 export const Api = {
-  async attachProcess(pid: number) {
-    const resp = await fetch('/api/process/attach', {
-      method: 'POST',
-      body: pid.toString(10),
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json',
-      },
-    });
-
-    if (resp.ok) {
-      return (await resp.json()) as number;
-    }
-    return 0;
-  },
-
+  DebuggingProcess,
   async getProcessList() {
     const response = await fetch('/api/process');
     if (response.ok) {
