@@ -11,6 +11,7 @@ const requestProcessList = () => {
   effect(async () => {
     const processList = await Api.getProcessList();
     if (processList) {
+      processList.sort((a, b) => (a.name < b.name ? -1 : 1));
       loading.value = false;
       processes.value = processList;
     }
