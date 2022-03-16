@@ -12,7 +12,7 @@ public class BeDbg64
 	private static extern IntPtr _attachProcess(int pid);
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "DetachProcess")]
-	public static extern IntPtr DetachProcess(int pid);
+	public static extern bool DetachProcess(IntPtr handle);
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "StartProcess", CharSet = CharSet.Unicode)]
 	private static extern int _startProcess(string filename, string command, string? environment,
@@ -42,6 +42,9 @@ public class BeDbg64
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "HasError")]
 	public static extern bool HasError();
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "ClearError")]
+	public static extern bool ClearError();
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "GetError")]
 	public static extern ulong GetError();

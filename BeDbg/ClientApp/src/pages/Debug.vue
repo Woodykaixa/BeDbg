@@ -22,16 +22,24 @@ async function ParseAndAttachProcess() {
     router.push('/');
     return;
   }
-
 }
 
 onMounted(() => {
   ParseAndAttachProcess();
 });
 
-const stopDebug = () => {
+const stopDebug = async () => {
   sessionStorage.removeItem('debugPid');
-  router.push('/');
+  const { ok, data } = await Api.DebuggingProcess.detachProcess(pid);
+  if (ok) {
+    router.push('/');
+  } else {
+    notification.error({
+      title: '退出调试失败',
+      description: data.error,
+      content: data.message,
+    });
+  }
 };
 
 effect(async () => {

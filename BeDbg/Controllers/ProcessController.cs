@@ -43,7 +43,6 @@ public class ProcessController : ControllerBase
 			}
 		}
 
-
 		return cmdDict.Values;
 	}
 
@@ -58,13 +57,6 @@ public class ProcessController : ControllerBase
 			$"{request.File} {request.Command}");
 	}
 
-
-	[HttpPost("attach")]
-	public ActionResult<long> AttachProcess([FromBody] int pid)
-	{
-		var handle = Api.BeDbg64.AttachProcess(pid);
-		return new ActionResult<long>(handle.ToInt64());
-	}
 
 	[HttpGet("read")]
 	public FileContentResult ReadProcessMemory([FromQuery] ReadProcessMemoryRequest request)
