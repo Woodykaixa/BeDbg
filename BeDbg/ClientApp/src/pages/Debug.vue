@@ -12,13 +12,23 @@ import { Api } from '@/api';
 const router = useRouter();
 const notification = useNotification();
 const pid = parseInt(sessionStorage.getItem('debugPid') ?? '0', 10);
-if (pid === 0) {
-  notification.error({
-    title: '未指定调试进程',
-    content: '请附加或创建一个进程来调试',
-  });
-  router.push('/');
+
+async function ParseAndAttachProcess() {
+  if (pid === 0) {
+    notification.error({
+      title: '未指定调试进程',
+      content: '请附加或创建一个进程来调试',
+    });
+    router.push('/');
+    return;
+  }
+  const handle = await Api.attachProcess(pid);
+  console.log('handle', handle);
 }
+
+onMounted(() => {
+  ParseAndAttachProcess();
+});
 
 const stopDebug = () => {
   sessionStorage.removeItem('debugPid');
@@ -28,10 +38,5 @@ const stopDebug = () => {
 effect(async () => {
   const resp = await Api.readProcessMemory({ pid, address: 0, size: 0 })!;
   console.log(resp, typeof resp);
-});
-
-onMounted(async () => {
-  const handle = await Api.attachProcess(pid);
-  console.log('handle', handle);
 });
 </script>

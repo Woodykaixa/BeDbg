@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, effect, onMounted, watch } from 'vue';
+import { ref, effect, onMounted, watch, h, reactive } from 'vue';
 import {
   NList,
   NListItem,
@@ -13,6 +13,7 @@ import {
   NBreadcrumbItem,
   NInput,
   InputInst,
+  NResult,
 } from 'naive-ui';
 import { Api } from '@/api';
 import { FileModel } from '@/dto/fs';
@@ -21,6 +22,11 @@ import { useRouter } from 'vue-router';
 
 const cwd = ref('');
 const folders = ref([] as string[]);
+const errorData = reactive({
+  hasError: false,
+  msg: null as null | string,
+  err: null as null | string,
+});
 watch(
   () => cwd.value,
   () => {
@@ -35,11 +41,17 @@ const requestFileList = (dir?: string) => {
   effect(async () => {
     loading.value = true;
     targetFile.value = '';
-    const fileList = await Api.getFileList(dir);
-    if (fileList) {
-      loading.value = false;
-      files.value = fileList.files;
-      cwd.value = fileList.path;
+    const { data, ok } = await Api.getFileList(dir);
+    console.log(data, ok);
+    errorData.hasError = !ok;
+    loading.value = false;
+    if (ok) {
+      files.value = data.files;
+      cwd.value = data.path;
+    } else {
+      cwd.value = dir ?? '';
+      errorData.msg = data.message;
+      errorData.err = data.error;
     }
   });
 };
@@ -83,7 +95,14 @@ const debugExe = async () => {
         <n-input placeholder="启动命令" ref="command" style="flex: 1%; margin-right: 4px" />
         <n-button :disabled="targetFile === ''" @click="debugExe()">启动</n-button>
       </div>
-      <n-scrollbar v-if="files.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
+      <n-result
+        v-if="errorData.hasError"
+        class="panel-error"
+        status="error"
+        :description="errorData.msg!"
+        :title="errorData.err!"
+      />
+      <n-scrollbar v-else-if="files.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
         <n-list-item
           v-for="file in files"
           :key="file.name"
@@ -116,6 +135,15 @@ const debugExe = async () => {
   width: 100%;
   height: 60vh;
   position: relative;
+}
+
+.panel-error {
+  height: 50vh;
+  padding: 8px;
+  background-color: rgb(26, 26, 26);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .panel-empty {

@@ -1,3 +1,4 @@
+import { ErrorResponse } from '@/dto/error';
 import { DirectoryModel, FileModel } from '@/dto/fs';
 import { ProcessModel } from '../dto/process';
 
@@ -52,10 +53,22 @@ export const Api = {
   },
 
   async getFileList(dir?: string) {
-    const response = await fetch(dir ? `/api/fs/ls?dir=${dir}` : '/api/fs/ls');
+    const response = await fetch(dir ? `/api/fs/ls?dir=${dir}` : '/api/fs/ls', {
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+    });
+    const json = await response.json();
     if (response.ok) {
-      return (await response.json()) as DirectoryModel;
+      return {
+        ok: true,
+        data: json as DirectoryModel,
+      } as const;
     }
-    return null;
+    return {
+      ok: false,
+      data: json as ErrorResponse,
+    } as const;
   },
 } as const;
