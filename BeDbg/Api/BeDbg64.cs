@@ -1,6 +1,7 @@
 ﻿using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
+using BeDbg.Exceptions;
 
 namespace BeDbg.Api;
 
@@ -12,7 +13,7 @@ public class BeDbg64
 	private static extern IntPtr _attachProcess(int pid);
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "DetachProcess")]
-	public static extern bool DetachProcess(IntPtr handle);
+	public static extern bool _detachProcess(IntPtr handle);
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "StartProcess", CharSet = CharSet.Unicode)]
 	private static extern int _startProcess(string filename, string command, string? environment,
@@ -37,7 +38,7 @@ public class BeDbg64
 		var code = (uint) errorCode;
 		var msg = Marshal.PtrToStringAuto(GetErrorMessage());
 
-		throw new Exception($"Module: {module}, Code: {code}, Msg: {msg}");
+		throw new ApiException(msg ?? "", code, module);
 	}
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "HasError")]
@@ -66,6 +67,18 @@ public class BeDbg64
 		var msg = Marshal.PtrToStringAuto(GetErrorMessage());
 
 		throw new Exception($"Module: {module}, Code: {code}, Msg: {msg}");
+	}
+
+	public static bool DetachProcess(IntPtr handle)
+	{
+		ClearError();
+		var success = _detachProcess(handle);
+		if (!success)
+		{
+			Throw();
+		}
+
+		return success;
 	}
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "IsAttachableProcess")]

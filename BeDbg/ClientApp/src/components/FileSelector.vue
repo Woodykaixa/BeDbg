@@ -14,11 +14,14 @@ import {
   NInput,
   InputInst,
   NResult,
+  useNotification,
 } from 'naive-ui';
 import { Api } from '@/api';
 import { FileModel } from '@/dto/fs';
 import { FileOutlined, FolderOutlined } from '@vicons/antd';
 import { useRouter } from 'vue-router';
+
+const notification = useNotification();
 
 const cwd = ref('');
 const folders = ref([] as string[]);
@@ -70,14 +73,17 @@ const debugExe = async () => {
   const cmd = command.value.inputElRef!.value;
   const file = targetFile.value;
   loading.value = true;
-  const process = await Api.createProcess(file, cmd);
+  const { ok, data } = await Api.DebuggingProcess.create(file, cmd);
   loading.value = false;
-  if (!process) {
-    console.log('failed');
-    return;
+  if (ok) {
+    router.push('/debug');
+  } else {
+    notification.error({
+      title: '创建进程失败',
+      description: data.error,
+      content: data.message,
+    });
   }
-  sessionStorage.setItem('debugPid', process.id.toString(10));
-  router.push('/debug');
 };
 </script>
 
@@ -93,7 +99,7 @@ const debugExe = async () => {
       </template>
       <div style="display: flex; width: 100%; margin-bottom: 8px">
         <n-input placeholder="启动命令" ref="command" style="flex: 1%; margin-right: 4px" />
-        <n-button :disabled="targetFile === ''">启动</n-button>
+        <n-button :disabled="targetFile === ''" @click="debugExe">启动</n-button>
       </div>
       <n-result
         v-if="errorData.hasError"

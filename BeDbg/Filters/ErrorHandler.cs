@@ -9,18 +9,18 @@ namespace BeDbg.Filters
 {
 	public class ErrorHandler
 	{
-		private readonly RequestDelegate next;
+		private readonly RequestDelegate _next;
 
 		public ErrorHandler(RequestDelegate next)
 		{
-			this.next = next;
+			this._next = next;
 		}
 
 		public async Task InvokeAsync(HttpContext context)
 		{
 			try
 			{
-				await next(context);
+				await _next(context);
 			}
 			catch (Exception ex)
 			{

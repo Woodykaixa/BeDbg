@@ -2,6 +2,7 @@
 using BeDbg.Api;
 using BeDbg.Contexts;
 using BeDbg.Models;
+using BeDbg.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BeDbg.Controllers
@@ -10,68 +11,50 @@ namespace BeDbg.Controllers
 	[ApiController]
 	public class DebuggingProcessController : ControllerBase
 	{
-		private readonly DebuggingProcessContext _ctx;
+		private readonly DebugService _debugService;
 
-		public DebuggingProcessController(DebuggingProcessContext ctx)
+		public DebuggingProcessController(DebugService debugService)
 		{
-			_ctx = ctx;
+			_debugService = debugService;
 		}
 
 		[HttpGet]
-		public IEnumerable<DebuggingProcess> ListDebuggingProcess()
-		{
-			return _ctx.DebuggingProcesses.ToList();
-		}
+		public IEnumerable<DebuggingProcess> ListDebuggingProcess() => _debugService.ListDebuggingProcesses();
 
-		[HttpGet("{pid}")]
+		[HttpGet("{pid:int}")]
 		public async Task<ActionResult<DebuggingProcess>> GetProcess(int pid)
 		{
-			var process = await _ctx.DebuggingProcesses.FindAsync(pid);
-
+			var process = await _debugService.FindOneByPid(pid);
 			return process != null ? process : NotFound();
 		}
 
 		[HttpGet("attach")]
 		public async Task<ActionResult<DebuggingProcess>> AttachProcess([FromQuery] int pid)
 		{
-			BeDbg64.ClearError();
-			var handle = BeDbg64.AttachProcess(pid);
-			var process = new DebuggingProcess
-			{
-				Id = pid,
-				AttachTime = DateTime.Now,
-				Handle = handle.ToInt64()
-			};
-			_ctx.DebuggingProcesses.Add(process);
-
-			await _ctx.SaveChangesAsync();
+			var process = await _debugService.AttachProcess(pid);
 			return CreatedAtAction(nameof(GetProcess), new {pid}, process);
 		}
 
 		[HttpPost("detach")]
 		public async Task<ActionResult> DetachProcess([FromBody] int pid)
 		{
-			BeDbg64.ClearError();
-			var process = await _ctx.DebuggingProcesses.FindAsync(pid);
-			if (process == null)
+			await _debugService.DetachProcess(pid);
+			return Ok();
+		}
+
+
+		[HttpPost]
+		public async Task<int> CreateDebugProcess([FromBody] CreateProcessRequest request)
+		{
+			var (file, command) = request;
+			var pid = BeDbg64.StartProcess(file, command, null, null);
+			if (pid is 0)
 			{
-				return Ok();
+				return 0;
 			}
 
-			if (BeDbg64.DetachProcess(new IntPtr(process.Handle)))
-			{
-				_ctx.DebuggingProcesses.Remove(process);
-				await _ctx.SaveChangesAsync();
-
-				return Ok();
-			}
-
-			var errorCode = BeDbg64.GetError();
-			var module = (uint) (errorCode >> 32);
-			var code = (uint) errorCode;
-			var msg = Marshal.PtrToStringAuto(BeDbg64.GetErrorMessage());
-
-			throw new Exception($"Module: {module}, Code: {code}, Msg: {msg}");
+			var process = await _debugService.AttachProcess(pid);
+			return process.Id;
 		}
 	}
 }

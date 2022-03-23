@@ -2,8 +2,11 @@
 using System.Diagnostics;
 using System.Management;
 using BeDbg.Api;
+using BeDbg.Contexts;
+using BeDbg.Exceptions;
 using BeDbg.Extensions;
 using BeDbg.Models;
+using BeDbg.Services;
 
 namespace BeDbg.Controllers;
 
@@ -11,6 +14,13 @@ namespace BeDbg.Controllers;
 [ApiController]
 public class ProcessController : ControllerBase
 {
+	private readonly DebugService _debugService;
+
+	public ProcessController(DebugService debugService)
+	{
+		_debugService = debugService;
+	}
+
 	[HttpGet]
 	public IEnumerable<ProcessModel> GetProcesses()
 	{
@@ -45,18 +55,6 @@ public class ProcessController : ControllerBase
 
 		return cmdDict.Values;
 	}
-
-	[HttpPost]
-	public ProcessModel CreateProcess([FromBody] CreateProcessRequest request)
-	{
-		var process = new Process();
-		var startup = new ProcessStartInfo(request.File, request.Command);
-		process.StartInfo = startup;
-		process.Start();
-		return new ProcessModel(process.ProcessName, process.Id, process.MainWindowTitle, process.IsWow64(),
-			$"{request.File} {request.Command}");
-	}
-
 
 	[HttpGet("read")]
 	public FileContentResult ReadProcessMemory([FromQuery] ReadProcessMemoryRequest request)

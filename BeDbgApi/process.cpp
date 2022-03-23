@@ -18,24 +18,24 @@ BeDbgApi::Type::handle_t BeDbgApi::Process::AttachProcess(int pid)
     return nullptr;
 }
 
-int BeDbgApi::Process::StartProcess(const wchar_t* filename, const wchar_t* command, wchar_t* environment,
-                                    const wchar_t* workingDirectory)
+std::uint32_t BeDbgApi::Process::StartProcess(const wchar_t* filename, const wchar_t* command, wchar_t* environment,
+                                              const wchar_t* workingDirectory)
 {
     wchar_t cmdBuffer[MAX_PATH];
-    STARTUPINFOW startupInfo;
-    startupInfo.cb = sizeof(STARTUPINFOW);
+    STARTUPINFOW startupInfo{.cb = sizeof(STARTUPINFOW)};
     PROCESS_INFORMATION processInfo;
     fmt::format_to_n(cmdBuffer, MAX_PATH, L"{}{}", command, '\0');
     const auto success = CreateProcessW(filename, cmdBuffer, nullptr, nullptr, false,
                                         CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP |
-                                        CREATE_DEFAULT_ERROR_MODE, environment, workingDirectory, &startupInfo,
+                                        CREATE_SUSPENDED | DEBUG_PROCESS | CREATE_DEFAULT_ERROR_MODE,
+                                        environment, workingDirectory, &startupInfo,
                                         &processInfo);
     if (!success)
     {
         *Error::GetInnerError() = Error::Error{Error::ExceptionModule::SYSTEM, GetLastError(), L"CreateProcessW"};
         return 0;
     }
-    auto pid = GetProcessId(processInfo.hProcess);
+    const auto pid = GetProcessId(processInfo.hProcess);
     CloseHandle(processInfo.hProcess);
     CloseHandle(processInfo.hThread);
     return pid;

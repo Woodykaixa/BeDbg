@@ -61,4 +61,28 @@ export const DebuggingProcess = {
       data: (await resp.json()) as ErrorResponse,
     } as const;
   },
+
+  async create(file: string, command: string) {
+    const response = await fetch('/api/debuggingProcess', {
+      method: 'POST',
+      body: JSON.stringify({
+        file,
+        command,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      return {
+        ok: true,
+        data: json as number,
+      } as const;
+    }
+    return {
+      ok: false,
+      data: json as ErrorResponse,
+    } as const;
+  },
 } as const;
