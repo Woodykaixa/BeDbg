@@ -41,27 +41,27 @@ const debugProcess = async () => {
         </div>
       </template>
       <n-scrollbar v-if="processes.length !== 0" style="height: 50vh; padding: 8px; background-color: rgb(26, 26, 26)">
-        <n-list-item
-          v-for="process in processes"
-          :key="process.id"
-          class="process-item"
-          :class="[process.id === selectedPid ? 'process-item-selected' : '']"
-          @click="selectedPid = process.id"
-        >
-          <n-thing>
-            <template #header>
-              <n-space>
-                <div>进程名称: {{ process.name }}</div>
-                <n-tag v-if="process.wow64" type="success" size="small">WOW64</n-tag>
-              </n-space>
-            </template>
-            <template #description>
-              <div>进程ID: {{ process.id }}</div>
-              <div>进程标题: {{ process.title }}</div>
-              <div>启动命令: {{ process.command }}</div>
-            </template>
-          </n-thing>
-        </n-list-item>
+        <n-scrollbar style="width: 100%" x-scrollable v-for="process in processes" :key="process.id">
+          <n-list-item
+            class="process-item"
+            :class="[process.id === selectedPid ? 'process-item-selected' : '']"
+            @click="selectedPid = process.id"
+          >
+            <n-thing>
+              <template #header>
+                <n-space>
+                  <div>进程名称: {{ process.name }}</div>
+                  <n-tag v-if="process.wow64" type="success" size="small">WOW64</n-tag>
+                </n-space>
+              </template>
+              <template #description>
+                <div>进程ID: {{ process.id }}</div>
+                <div>进程标题: {{ process.title }}</div>
+                <div>启动命令: {{ process.command }}</div>
+              </template>
+            </n-thing>
+          </n-list-item>
+        </n-scrollbar>
       </n-scrollbar>
       <n-empty v-else description="没有获取到进程信息" class="panel-empty">
         <template #extra> 请尝试使用管理员模式运行 BeDbg </template>
@@ -89,6 +89,8 @@ const debugProcess = async () => {
 .process-item {
   cursor: pointer;
   padding: 4px;
+  box-sizing: border-box;
+  width: 100%;
 }
 .process-item-selected {
   background-color: rgba(71, 223, 172, 0.6);
