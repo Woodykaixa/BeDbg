@@ -1,7 +1,9 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Buffers;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using BeDbg.Exceptions;
+using BeDbg.Models;
 
 namespace BeDbg.Api;
 
@@ -37,7 +39,7 @@ public class BeDbg64
 		var module = (uint) (errorCode >> 32);
 		var code = (uint) errorCode;
 		var msg = Marshal.PtrToStringAuto(GetErrorMessage());
-
+		Console.WriteLine($"Msg: {msg}, Code: {code}, Module: {module}");
 		throw new ApiException(msg ?? "", code, module);
 	}
 
@@ -91,5 +93,38 @@ public class BeDbg64
 		var code = (uint) errorCode;
 		var msg = GetErrorMessage();
 		return new BeDbgApiError(module.ToString(), code, Marshal.PtrToStringAuto(msg)!);
+	}
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "QueryProcessModules")]
+	private static extern unsafe bool _queryProcessModules(IntPtr handle,
+		[Out] ProcessModuleInformation[] modules,
+		uint count, uint* usedCount);
+
+	[StructLayout(LayoutKind.Sequential, Pack = 8, CharSet = CharSet.Unicode)]
+	public struct ProcessModuleInformation
+	{
+		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+		public string Name;
+
+		public ulong Entry;
+		public uint Size;
+		public ulong ImageBase;
+	}
+
+	public static IEnumerable<ProcessModule> QueryProcessModules(IntPtr handle)
+	{
+		uint used = 0;
+		var infos = new ProcessModuleInformation[1024];
+		unsafe
+		{
+			var success = _queryProcessModules(handle, infos, 1024, &used);
+			if (!success) 
+			{
+				Throw();
+			}
+
+			return infos.Take((int) (used))
+				.Select(info => new ProcessModule(info.Name, info.Entry, info.Size, info.ImageBase));
+		}
 	}
 }

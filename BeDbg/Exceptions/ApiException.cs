@@ -17,6 +17,7 @@ public class ApiException : Exception
 	{
 		var err = base.ToString();
 		var custom = $"Api Error: Module: {this.Module}, Code: {this.Code}, Message: {this.ApiMessage}\n";
+		Console.Error.WriteLine(custom);
 		return custom + err;
 	}
 }

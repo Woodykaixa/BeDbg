@@ -1,5 +1,5 @@
 import { ErrorResponse } from '@/dto/error';
-import { DebuggingProcess as DebuggingProcessResp } from '@/dto/process';
+import { DebuggingProcess as DebuggingProcessResp, ProcessModule } from '@/dto/process';
 
 export const DebuggingProcess = {
   async list() {
@@ -78,6 +78,21 @@ export const DebuggingProcess = {
       return {
         ok: true,
         data: json as number,
+      } as const;
+    }
+    return {
+      ok: false,
+      data: json as ErrorResponse,
+    } as const;
+  },
+
+  async listModules(pid: number) {
+    const response = await fetch(`api/debuggingProcess/modules?pid=${pid}`);
+    const json = await response.json();
+    if (response.ok) {
+      return {
+        ok: true,
+        data: json as ProcessModule[],
       } as const;
     }
     return {

@@ -59,3 +59,38 @@ bool BeDbgApi::Process::IsAttachableProcess(int pid)
     }
     return false;
 }
+
+bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
+                                            _Inout_count_(sizeof(ProcessModuleInformation)* count)
+                                            ProcessModuleInformation
+                                            modules[], const size_t count, size_t* usedCount)
+{
+    HMODULE moduleHandles[1024];
+    DWORD sizeUsed = 0;
+    if (K32EnumProcessModulesEx(handle, moduleHandles, 1024u * sizeof(HMODULE), &sizeUsed, LIST_MODULES_ALL) == 0)
+    {
+        *Error::GetInnerError() = Error::Error{Error::ExceptionModule::SYSTEM, GetLastError(), L"EnumProcessModulesEx"};
+        return false;
+    }
+    const auto moduleCount = sizeUsed / sizeof(HMODULE);
+    MODULEINFO moduleInfo;
+    size_t used = 0;
+    for (auto i = 0ull; i < moduleCount; ++i)
+    {
+        if (count == i)
+        {
+            break;
+        }
+        if (K32GetModuleInformation(handle, moduleHandles[i], &moduleInfo, sizeof(MODULEINFO)))
+        {
+            used++;
+            const auto size = K32GetModuleBaseNameW(handle, moduleHandles[i], modules[i].name, PROCESS_NAME_SIZE);
+            modules[i].name[size < PROCESS_NAME_SIZE ? size : PROCESS_NAME_SIZE - 1] = L'\0';
+            modules[i].entry = reinterpret_cast<std::uint64_t>(moduleInfo.EntryPoint);
+            modules[i].imageBase = reinterpret_cast<std::uint64_t>(moduleInfo.lpBaseOfDll);
+            modules[i].size = moduleInfo.SizeOfImage;
+        }
+    }
+    *usedCount = used;
+    return true;
+}

@@ -11,3 +11,10 @@ export type DebuggingProcess = {
   handle: number;
   attachTime: Date;
 };
+
+export type ProcessModule = {
+  name: string;
+  entry: number;
+  size: number;
+  base: number;
+};

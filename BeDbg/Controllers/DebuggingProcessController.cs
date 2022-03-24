@@ -42,7 +42,6 @@ namespace BeDbg.Controllers
 			return Ok();
 		}
 
-
 		[HttpPost]
 		public async Task<int> CreateDebugProcess([FromBody] CreateProcessRequest request)
 		{
@@ -55,6 +54,18 @@ namespace BeDbg.Controllers
 
 			var process = await _debugService.AttachProcess(pid);
 			return process.Id;
+		}
+
+		[HttpGet("modules")]
+		public async Task<ActionResult<IEnumerable<ProcessModule>>> DumpProcessModules([FromQuery] int pid)
+		{
+			var process = await _debugService.FindOneByPid(pid);
+			if (process != null)
+			{
+				return Ok(BeDbg64.QueryProcessModules(new IntPtr(process.Handle)));
+			}
+
+			return NotFound();
 		}
 	}
 }
