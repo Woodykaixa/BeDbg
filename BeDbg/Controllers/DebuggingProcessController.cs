@@ -67,5 +67,17 @@ namespace BeDbg.Controllers
 
 			return NotFound();
 		}
+
+		[HttpGet("pages")]
+		public async Task<IEnumerable<ProcessMemPage>> DumpProcessMemoryPages([FromQuery] int pid)
+		{
+			var process = await _debugService.FindOneByPid(pid);
+			if (process != null)
+			{
+				return BeDbg64.QueryProcessMemoryPages(new IntPtr(process.Handle));
+			}
+
+			return Array.Empty<ProcessMemPage>();
+		}
 	}
 }

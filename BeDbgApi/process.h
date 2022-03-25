@@ -27,6 +27,23 @@ namespace BeDbgApi::Process
     };
 
     BEDBG_API bool QueryProcessModules(Type::handle_t handle,
-                                       _Inout_count_(sizeof(ProcessModuleInformation)*count) ProcessModuleInformation
+                                       _Out_writes_(sizeof(ProcessModuleInformation)*count) ProcessModuleInformation
                                        modules[], size_t count, size_t* usedCount);
+
+    struct ProcessMemoryBlockInformation
+    {
+        std::uint64_t baseAddress;
+        std::uint64_t allocAddress;
+        std::uint64_t size;
+        std::uint32_t protectionFlags;
+        std::uint32_t initialProtectionFlags;
+        std::uint32_t state;
+        std::uint32_t type;
+    };
+
+
+    BEDBG_API _Success_(return > 0) size_t QueryProcessMemoryInfos(Type::handle_t handle,
+                                                                   _Out_writes_(
+                                                                       sizeof(ProcessMemoryBlockInformation)* count)
+                                                                   ProcessMemoryBlockInformation infos[], size_t count);
 }

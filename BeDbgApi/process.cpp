@@ -61,7 +61,7 @@ bool BeDbgApi::Process::IsAttachableProcess(int pid)
 }
 
 bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
-                                            _Inout_count_(sizeof(ProcessModuleInformation)* count)
+                                            _Out_writes_(sizeof(ProcessModuleInformation)* count)
                                             ProcessModuleInformation
                                             modules[], const size_t count, size_t* usedCount)
 {
@@ -93,4 +93,44 @@ bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
     }
     *usedCount = used;
     return true;
+}
+
+size_t _Success_(return > 0) BeDbgApi::Process::QueryProcessMemoryInfos(
+    const Type::handle_t handle,
+    _Out_writes_(sizeof(ProcessMemoryBlockInformation)* count)
+    ProcessMemoryBlockInformation infos[], const size_t count)
+{
+    size_t i = 0;
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    auto p = static_cast<char*>(sysInfo.lpMinimumApplicationAddress);
+    MEMORY_BASIC_INFORMATION memInfo;
+    while (p < sysInfo.lpMaximumApplicationAddress && i < count)
+    {
+        if (const auto size = VirtualQueryEx(
+                handle,
+                p,
+                &memInfo,
+                sizeof(MEMORY_BASIC_INFORMATION)
+            ); size != sizeof(MEMORY_BASIC_INFORMATION)
+        )
+        {
+            break;
+        }
+
+
+        infos[i] = {
+            .baseAddress = reinterpret_cast<std::uint64_t>(memInfo.BaseAddress),
+            .allocAddress = reinterpret_cast<std::uint64_t>(memInfo.AllocationBase),
+            .size = memInfo.RegionSize,
+            .protectionFlags = memInfo.Protect,
+            .initialProtectionFlags = memInfo.AllocationProtect,
+            .state = memInfo.State,
+            .type = memInfo.Type
+        };
+        i++;
+
+        p += memInfo.RegionSize;
+    }
+    return i;
 }

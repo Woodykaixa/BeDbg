@@ -118,7 +118,7 @@ public class BeDbg64
 		unsafe
 		{
 			var success = _queryProcessModules(handle, infos, 1024, &used);
-			if (!success) 
+			if (!success)
 			{
 				Throw();
 			}
@@ -126,5 +126,33 @@ public class BeDbg64
 			return infos.Take((int) (used))
 				.Select(info => new ProcessModule(info.Name, info.Entry, info.Size, info.ImageBase));
 		}
+	}
+
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "QueryProcessMemoryInfos")]
+	private static extern ulong _queryProcessMemoryInfos(IntPtr handle,
+		[Out] ProcessMemoryBlockInformation[] infos, ulong count);
+
+	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	public struct ProcessMemoryBlockInformation
+	{
+		public ulong BaseAddress;
+		public ulong AllocAddress;
+		public ulong Size;
+		public uint ProtectionFlags;
+		public uint InitialProtectionFlags;
+		public uint State;
+		public uint Type;
+	}
+
+	public static IEnumerable<ProcessMemPage> QueryProcessMemoryPages(IntPtr handle)
+	{
+		ClearError();
+		var infos = new ProcessMemoryBlockInformation[1024];
+		var count = _queryProcessMemoryInfos(handle, infos, 1024);
+		return infos.Take((int) count).Select(info => new ProcessMemPage(info.BaseAddress, info.AllocAddress, info.Size,
+			ProcessModelHelper.MemoryProtectionFromFlag(info.ProtectionFlags),
+			ProcessModelHelper.MemoryProtectionFromFlag(info.InitialProtectionFlags), info.State,
+			info.Type));
 	}
 }

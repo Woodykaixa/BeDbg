@@ -18,3 +18,21 @@ export type ProcessModule = {
   size: number;
   base: number;
 };
+
+export type MemoryProtection = {
+  copy: boolean;
+  execute: boolean;
+  guard: boolean;
+  read: boolean;
+  write: boolean;
+};
+
+export type ProcessMemoryPage = {
+  allocAddress: number;
+  baseAddress: number;
+  flags: MemoryProtection;
+  initialFlags: MemoryProtection;
+  size: number;
+  state: number;
+  type: number;
+};
