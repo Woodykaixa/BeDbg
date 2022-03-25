@@ -93,11 +93,16 @@ const debugProcess = async () => {
   width: 100%;
 }
 .process-item-selected {
-  background-color: rgba(71, 223, 172, 0.6);
+  background-color: var(--hover-color);
 }
+
+.process-item-selected * {
+  color: var(--primary-color-hover);
+}
+
 .process-item:hover {
-  background-color: rgba(99, 226, 183, 0.6);
-  transition-timing-function: linear;
-  transition: 0.2s;
+  background-color: var(--hover-color);
+  transition-timing-function: var(--n-bezier);
+  transition: 0.3s;
 }
 </style>

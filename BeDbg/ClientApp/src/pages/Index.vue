@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NTabs, NTabPane, NAlert } from 'naive-ui';
+import { NTabs, NTabPane, NAlert, NEl } from 'naive-ui';
 import ProcessSelector from '@/components/ProcessSelector.vue';
 import FileSelector from '@/components/FileSelector.vue';
 import { effect, reactive, ref } from 'vue';
@@ -31,14 +31,16 @@ effect(() => {
         你还有进程正在调试中，如果想要继续调试，请打开 {{ debugPath }}
       </n-alert>
       <h1 class="title">BeDbg</h1>
-      <n-tabs default-value="create" type="line">
-        <n-tab-pane name="create" tab="调试文件">
-          <file-selector></file-selector>
-        </n-tab-pane>
-        <n-tab-pane name="attach" tab="附加到进程">
-          <process-selector></process-selector>
-        </n-tab-pane>
-      </n-tabs>
+      <n-el>
+        <n-tabs default-value="create" type="line">
+          <n-tab-pane name="create" tab="调试文件">
+            <file-selector></file-selector>
+          </n-tab-pane>
+          <n-tab-pane name="attach" tab="附加到进程">
+            <process-selector></process-selector>
+          </n-tab-pane>
+        </n-tabs>
+      </n-el>
     </div>
   </div>
 </template>

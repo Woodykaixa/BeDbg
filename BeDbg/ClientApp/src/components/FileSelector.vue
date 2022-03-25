@@ -117,7 +117,7 @@ const debugExe = async () => {
         >
           <n-thing @click="file.type === 'folder' ? requestFileList(file.path) : (targetFile = file.path)">
             <template #header>
-              {{ file.name }}
+              <div>{{ file.name }}</div>
             </template>
             <template #description>
               {{ file.path }}
@@ -168,11 +168,16 @@ const debugExe = async () => {
 }
 
 .file-item-selected {
-  background-color: rgba(71, 223, 172, 0.6);
+  background-color: var(--hover-color);
 }
+
+.file-item-selected * {
+  color: var(--primary-color-hover) !important;
+}
+
 .file-item:hover {
-  background-color: rgba(99, 226, 183, 0.6);
-  transition-timing-function: linear;
-  transition: 0.2s;
+  background-color: var(--hover-color);
+  transition-timing-function: var(--n-bezier);
+  transition: 0.3s;
 }
 </style>
