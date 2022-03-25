@@ -49,17 +49,18 @@
       <n-scrollbar>
         <n-li v-for="i in instr" class="dis-asm-instr">
           <div class="address">{{ formatNumberHex(i.address) }}</div>
-          <div>{{ i.text }}</div>
+          <n-code :code="i.text" language="x86asm" />
         </n-li>
       </n-scrollbar>
     </n-list>
-    <n-list class="register-box" bordered>
-      <template #header> 寄存器 </template>
-      <n-li v-for="reg in fakeReg" class="register">
-        <span class="name">{{ reg.name }}</span>
-        <span class="value">{{ formatNumberHex(reg.value) }}</span>
-      </n-li>
-    </n-list>
+    <div class="data-panel">
+      <n-card class="register-box" title="寄存器" :content-style="{ display: 'flex', 'flex-wrap': 'wrap' }">
+        <div v-for="reg in fakeReg" class="register">
+          <code class="name">{{ reg.name }}</code>
+          <code class="value">{{ formatNumberHex(reg.value) }}</code>
+        </div>
+      </n-card>
+    </div>
   </div>
 </template>
 
@@ -76,8 +77,8 @@ import {
   NButton,
   NCollapse,
   NCollapseItem,
-  NRow,
-  NCol,
+  NCode,
+  NCard,
 } from 'naive-ui';
 import { Api } from '@/api';
 import { ProcessModule } from '@/dto/process';
@@ -231,15 +232,17 @@ effect(async () => {
   width: 80vw;
   height: 92vh;
   display: flex;
-  padding: 8px;
+  padding: 16px;
   margin: auto;
 }
 
 .dis-asm-box {
-  width: 40%;
+  width: 70%;
   display: flex;
   flex-direction: column;
   font-family: Consolas;
+  margin-block-start: 0;
+  margin-block-end: 0;
 }
 
 .dis-asm-instr {
@@ -279,22 +282,26 @@ effect(async () => {
 }
 
 .register-box {
-  width: 40%;
-  height: 100%;
   margin-left: 4px;
 }
 
 .register-box .register {
   box-sizing: border-box;
   padding: 4px;
+  display: flex;
 }
 
 .register-box .register .name {
-  width: 30%;
-  margin-right: 4px;
+  width: 30px;
+  margin: 0 4px;
 }
 
 .register-box .register .value {
-  width: 70%;
+}
+
+.data-panel {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
 }
 </style>

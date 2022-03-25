@@ -2,10 +2,14 @@
 import { NConfigProvider, darkTheme, NGlobalStyle, NIcon, NButton, NPopover, NNotificationProvider } from 'naive-ui';
 import { SettingOutlined } from '@vicons/antd';
 import SettingPanel from './components/SettingPanel.vue';
+import hljs from 'highlight.js';
+import asm from 'highlight.js/lib/languages/x86asm';
+
+hljs.registerLanguage('x86asm', asm);
 </script>
 
 <template>
-  <n-config-provider :theme="darkTheme">
+  <n-config-provider :theme="darkTheme" :hljs="hljs">
     <n-notification-provider>
       <router-view></router-view>
       <n-popover trigger="click" :style="{ width: '400px' }">
