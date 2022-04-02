@@ -1,8 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using BeDbg.Contexts;
 using BeDbg.Services;
-using Microsoft.EntityFrameworkCore;
 
 // Check OS Platform and ensure administrator role.
 var name = AppDomain.CurrentDomain.FriendlyName;
@@ -23,8 +21,7 @@ using (var identity = WindowsIdentity.GetCurrent())
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<DebuggingProcessContext>(opt => opt.UseInMemoryDatabase("DebuggingProcessList"));
-builder.Services.AddScoped<DebugService>();
+builder.Services.UseDebugService();
 var app = builder.Build();
 app.UseJsonErrorHandler();
 

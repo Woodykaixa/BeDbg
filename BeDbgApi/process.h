@@ -16,11 +16,11 @@ namespace BeDbgApi::Process
 
     BEDBG_API bool DumpAssembly(Type::handle_t handle);
 
-    constexpr std::uint32_t PROCESS_NAME_SIZE = 260;
+    constexpr std::uint32_t BUFFER_SIZE = 260;
 
     struct ProcessModuleInformation
     {
-        wchar_t name[PROCESS_NAME_SIZE];
+        wchar_t name[BUFFER_SIZE];
         std::uint64_t entry;
         std::uint32_t size;
         std::uint64_t imageBase;
@@ -39,6 +39,7 @@ namespace BeDbgApi::Process
         std::uint32_t initialProtectionFlags;
         std::uint32_t state;
         std::uint32_t type;
+        wchar_t info[BUFFER_SIZE];
     };
 
 

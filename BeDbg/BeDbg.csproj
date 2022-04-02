@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Iced" Version="1.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.3" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
   </ItemGroup>
 
@@ -36,7 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contexts\" />
     <Folder Include="Exceptions\" />
     <Folder Include="Services\" />
   </ItemGroup>

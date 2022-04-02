@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using BeDbg.Api;
-using BeDbg.Contexts;
+﻿using BeDbg.Api;
 using BeDbg.Models;
 using BeDbg.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,62 +20,61 @@ namespace BeDbg.Controllers
 		public IEnumerable<DebuggingProcess> ListDebuggingProcess() => _debugService.ListDebuggingProcesses();
 
 		[HttpGet("{pid:int}")]
-		public async Task<ActionResult<DebuggingProcess>> GetProcess(int pid)
+		public ActionResult<DebuggingProcess> GetProcess(int pid)
 		{
-			var process = await _debugService.FindOneByPid(pid);
-			return process != null ? process : NotFound();
+			var debugger = _debugService.FindOneByPid(pid);
+			return debugger != null ? debugger.TargetProcess : NotFound();
 		}
 
 		[HttpGet("attach")]
-		public async Task<ActionResult<DebuggingProcess>> AttachProcess([FromQuery] int pid)
+		public ActionResult<DebuggingProcess> AttachProcess([FromQuery] int pid)
 		{
-			var process = await _debugService.AttachProcess(pid);
-			return CreatedAtAction(nameof(GetProcess), new {pid}, process);
+			var debugger = _debugService.AttachProcess(pid);
+			return debugger;
 		}
 
 		[HttpPost("detach")]
-		public async Task<ActionResult> DetachProcess([FromBody] int pid)
+		public ActionResult DetachProcess([FromBody] int pid)
 		{
-			await _debugService.DetachProcess(pid);
+			_debugService.StopDebugProcessByPid(pid);
 			return Ok();
 		}
 
 		[HttpPost]
-		public async Task<int> CreateDebugProcess([FromBody] CreateProcessRequest request)
+		public int CreateDebugProcess([FromBody] CreateProcessRequest request)
 		{
 			var (file, command) = request;
-			var pid = BeDbg64.StartProcess(file, command, null, null);
-			if (pid is 0)
-			{
-				return 0;
-			}
+			var process = _debugService.CreateDebugProcess(file, command, null, null);
 
-			var process = await _debugService.AttachProcess(pid);
 			return process.Id;
 		}
 
 		[HttpGet("modules")]
-		public async Task<ActionResult<IEnumerable<ProcessModule>>> DumpProcessModules([FromQuery] int pid)
+		public ActionResult<IEnumerable<ProcessModule>> DumpProcessModules([FromQuery] int pid)
 		{
-			var process = await _debugService.FindOneByPid(pid);
-			if (process != null)
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger != null)
 			{
-				return Ok(BeDbg64.QueryProcessModules(new IntPtr(process.Handle)));
+				return Ok(debugger.Modules.Select(mod => new ProcessModule(mod.Name, mod.Entry, mod.Size, mod.Size)));
 			}
 
 			return NotFound();
 		}
 
 		[HttpGet("pages")]
-		public async Task<IEnumerable<ProcessMemPage>> DumpProcessMemoryPages([FromQuery] int pid)
+		public ActionResult<IEnumerable<ProcessMemPage>> DumpProcessMemoryPages([FromQuery] int pid)
 		{
-			var process = await _debugService.FindOneByPid(pid);
-			if (process != null)
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
 			{
-				return BeDbg64.QueryProcessMemoryPages(new IntPtr(process.Handle));
+				return NotFound();
 			}
 
-			return Array.Empty<ProcessMemPage>();
+			return Ok(debugger.MemPages.Select(info => new ProcessMemPage(info.BaseAddress, info.AllocAddress,
+				info.Size,
+				ProcessModelHelper.MemoryProtectionFromFlag(info.ProtectionFlags),
+				ProcessModelHelper.MemoryProtectionFromFlag(info.InitialProtectionFlags), info.State,
+				info.Type)));
 		}
 	}
 }

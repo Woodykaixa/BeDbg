@@ -84,8 +84,8 @@ bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
         if (K32GetModuleInformation(handle, moduleHandles[i], &moduleInfo, sizeof(MODULEINFO)))
         {
             used++;
-            const auto size = K32GetModuleBaseNameW(handle, moduleHandles[i], modules[i].name, PROCESS_NAME_SIZE);
-            modules[i].name[size < PROCESS_NAME_SIZE ? size : PROCESS_NAME_SIZE - 1] = L'\0';
+            const auto size = K32GetModuleBaseNameW(handle, moduleHandles[i], modules[i].name, BUFFER_SIZE);
+            modules[i].name[size < BUFFER_SIZE ? size : BUFFER_SIZE - 1] = L'\0';
             modules[i].entry = reinterpret_cast<std::uint64_t>(moduleInfo.EntryPoint);
             modules[i].imageBase = reinterpret_cast<std::uint64_t>(moduleInfo.lpBaseOfDll);
             modules[i].size = moduleInfo.SizeOfImage;
@@ -126,8 +126,13 @@ size_t _Success_(return > 0) BeDbgApi::Process::QueryProcessMemoryInfos(
             .protectionFlags = memInfo.Protect,
             .initialProtectionFlags = memInfo.AllocationProtect,
             .state = memInfo.State,
-            .type = memInfo.Type
+            .type = memInfo.Type,
+            .info = L""
         };
+        if (memInfo.Type == MEM_MAPPED)
+        {
+            K32GetMappedFileNameW(handle, memInfo.AllocationBase, infos[i].info, BUFFER_SIZE);
+        }
         i++;
 
         p += memInfo.RegionSize;

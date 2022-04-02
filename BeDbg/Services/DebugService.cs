@@ -1,58 +1,65 @@
-﻿using System.Runtime.InteropServices;
-using BeDbg.Api;
-using BeDbg.Contexts;
+﻿using BeDbg.Api;
+using BeDbg.Debugger;
+using BeDbg.Filters;
 using BeDbg.Models;
 
 namespace BeDbg.Services;
 
 public class DebugService
 {
-	private readonly DebuggingProcessContext _ctx;
+	private readonly List<BaseDebugger> _debuggers;
 
-	public DebugService(DebuggingProcessContext ctx)
+	public DebugService()
 	{
-		_ctx = ctx;
+		_debuggers = new List<BaseDebugger>(16);
 	}
 
-	public ValueTask<DebuggingProcess?> FindOneByPid(int pid)
+	public BaseDebugger? FindOneByPid(int pid)
 	{
-		return _ctx.DebuggingProcesses.FindAsync(pid);
+		return _debuggers.Find(dbg => dbg.TargetPid == pid);
 	}
 
-	public async Task<DebuggingProcess> AttachProcess(int pid)
+	public DebuggingProcess CreateDebugProcess(string file, string command, string? environment,
+		string? workingDir)
 	{
-		BeDbg64.ClearError();
-		var handle = BeDbg64.AttachProcess(pid);
-		var process = new DebuggingProcess
+		var debugger = new CreateDebugger(file, command, environment, workingDir);
+		_debuggers.Add(debugger);
+		return debugger.TargetProcess;
+	}
+
+	public DebuggingProcess AttachProcess(int pid)
+	{
+		if (FindOneByPid(pid) != null)
 		{
-			Id = pid,
-			AttachTime = DateTime.Now,
-			Handle = handle.ToInt64()
-		};
-		_ctx.DebuggingProcesses.Add(process);
-		await _ctx.SaveChangesAsync();
-		return process;
+			throw new Exception($"process {pid} already attached");
+		}
+
+		var debugger = new AttachDebugger(pid);
+		_debuggers.Add(debugger);
+		return debugger.TargetProcess;
 	}
 
-	public IEnumerable<DebuggingProcess> ListDebuggingProcesses() => _ctx.DebuggingProcesses.ToList();
+	public IEnumerable<DebuggingProcess> ListDebuggingProcesses() => _debuggers.Select(dbg => dbg.TargetProcess);
 
-	public async Task<bool> DetachProcess(int pid)
+	public bool StopDebugProcessByPid(int pid)
 	{
-		BeDbg64.ClearError();
-		var process = await _ctx.DebuggingProcesses.FindAsync(pid);
-		if (process == null)
+		var debugger = FindOneByPid(pid);
+		if (debugger == null)
 		{
 			return true;
 		}
 
-		if (!BeDbg64.DetachProcess(new IntPtr(process.Handle)))
-		{
-			return false;
-		}
-
-		_ctx.DebuggingProcesses.Remove(process);
-		await _ctx.SaveChangesAsync();
+		_debuggers.Remove(debugger);
 
 		return true;
+	}
+}
+
+public static class DebugServiceExtension
+{
+	public static IServiceCollection UseDebugService(
+		this IServiceCollection service)
+	{
+		return service.AddSingleton(new DebugService());
 	}
 }

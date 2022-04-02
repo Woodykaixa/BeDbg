@@ -1,11 +1,6 @@
-﻿using System.Buffers;
-using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Management;
 using BeDbg.Api;
-using BeDbg.Contexts;
-using BeDbg.Exceptions;
-using BeDbg.Extensions;
 using BeDbg.Models;
 using BeDbg.Services;
 
@@ -15,13 +10,6 @@ namespace BeDbg.Controllers;
 [ApiController]
 public class ProcessController : ControllerBase
 {
-	private readonly DebugService _debugService;
-
-	public ProcessController(DebugService debugService)
-	{
-		_debugService = debugService;
-	}
-
 	[HttpGet]
 	public IEnumerable<ProcessModel> GetProcesses()
 	{

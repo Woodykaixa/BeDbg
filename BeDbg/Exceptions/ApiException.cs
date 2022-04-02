@@ -9,9 +9,9 @@ public class ApiException : Exception
 	public ApiException(string message, uint code, uint module) : base(
 		$"Api Error: Module: {module}, Code: {code}, Message: {message}")
 	{
-		this.ApiMessage = message;
-		this.Code = code;
-		this.Module = module;
+		ApiMessage = message;
+		Code = code;
+		Module = module;
 	}
 
 	public override string ToString()
