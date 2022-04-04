@@ -53,37 +53,10 @@ const formatProtectionFlag = (flag: ProcessMemoryPage['flags']) => {
   }`;
 };
 
-const instr: Instruction[] = [];
-for (let i = 0; i < 20; i++) {
-  instr.push(
-    ...[
-      {
-        address: 0,
-        text: 'mov eax, ebx',
-      },
-      {
-        address: 4,
-        text: 'lea ebx, 8[eip]',
-      },
-      {
-        address: 6,
-        text: 'push eax',
-      },
-      {
-        address: 7,
-        text: 'push ebx',
-      },
-      {
-        address: 11,
-        text: 'call SomeFunction',
-      },
-      {
-        address: 15,
-        text: 'xor eax, eax',
-      },
-    ]
-  );
-}
+const debugData = reactive({
+  instr: [] as Instruction[],
+});
+
 const router = useRouter();
 const notification = useNotification();
 const process = reactive({
@@ -141,6 +114,13 @@ async function CheckDebugging() {
             data: '',
           };
         });
+      const { ok, data } = await Api.DebuggingProcess.disassemble(process.id);
+      if (ok) {
+        debugData.instr = data.map(i => ({
+          address: i.ip,
+          text: i.text,
+        }));
+      }
     }
   } else {
     notification.error({
@@ -245,7 +225,7 @@ effect(async () => {
         <n-list class="dis-asm-box" bordered>
           <template #header> 反汇编 </template>
           <n-scrollbar>
-            <n-li v-for="i in instr" class="dis-asm-instr">
+            <n-li v-for="i in debugData.instr" class="dis-asm-instr">
               <div class="address">{{ formatNumberHex(i.address) }}</div>
               <n-code :code="i.text" language="x86asm" />
             </n-li>

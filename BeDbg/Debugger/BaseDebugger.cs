@@ -1,5 +1,6 @@
 ﻿using BeDbg.Api;
 using BeDbg.Models;
+using Iced.Intel;
 
 namespace BeDbg.Debugger;
 
@@ -20,19 +21,18 @@ namespace BeDbg.Debugger;
 /// </summary>
 public abstract class BaseDebugger
 {
-	public DateTime StartTime { get; }
+	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
 	public long TargetHandle { get; internal set; }
-	public List<BeDbg64.ProcessModuleInformation> Modules { get; }
-	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; }
+	public List<BeDbg64.ProcessModuleInformation> Modules { get; } = new(128);
+	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; } = new(128);
+
+	private ulong _rip = 0;
 
 	protected BaseDebugger(int pid, long targetHandle)
 	{
-		StartTime = DateTime.Now;
 		TargetPid = pid;
 		TargetHandle = targetHandle;
-		Modules = new List<BeDbg64.ProcessModuleInformation>(128);
-		MemPages = new List<BeDbg64.ProcessMemoryBlockInformation>(128);
 	}
 
 	public DebuggingProcess TargetProcess => new()
@@ -54,5 +54,40 @@ public abstract class BaseDebugger
 		MemPages.Clear();
 		var pages = BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle));
 		MemPages.AddRange(pages);
+	}
+
+	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
+	{
+		var buffer = new byte[size];
+		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long)address), buffer, size, out var read);
+		var decoder = Decoder.Create(64, new ByteArrayCodeReader(buffer));
+		decoder.IP = (ulong)address;
+		var endRip = decoder.IP + (uint) read;
+		var instructions = new List<Instruction>();
+		while (decoder.IP < endRip)
+			instructions.Add(decoder.Decode());
+		_rip = decoder.IP;
+
+		var formatter = new NasmFormatter()
+		{
+			Options =
+			{
+				DigitSeparator = null,
+				FirstOperandCharIndex = 0,
+				AddLeadingZeroToHexNumbers = false,
+				AlwaysShowSegmentRegister = true,
+				NasmShowSignExtendedImmediateSize = true
+			}
+		};
+		var output = new StringOutput();
+		return instructions.Where(instr => instr.IsInvalid).Select(instr =>
+		{
+			formatter.Format(instr, output);
+			return new InstructionModel()
+			{
+				Ip = instr.IP,
+				Text = output.ToStringAndReset()
+			};
+		});
 	}
 }

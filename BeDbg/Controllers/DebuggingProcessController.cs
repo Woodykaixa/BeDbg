@@ -1,4 +1,6 @@
-﻿using BeDbg.Api;
+﻿using System.Text.Json;
+using BeDbg.Api;
+using BeDbg.Debugger;
 using BeDbg.Models;
 using BeDbg.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -75,6 +77,18 @@ namespace BeDbg.Controllers
 				ProcessModelHelper.MemoryProtectionFromFlag(info.ProtectionFlags),
 				ProcessModelHelper.MemoryProtectionFromFlag(info.InitialProtectionFlags), info.State,
 				info.Type)));
+		}
+
+		[HttpGet("disasm")]
+		public ActionResult Disassemble([FromQuery] int pid)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(debugger.Disassemble(0x00007FF79E3C1000, 0x3000));
 		}
 	}
 }
