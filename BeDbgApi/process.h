@@ -14,8 +14,6 @@ namespace BeDbgApi::Process
     BEDBG_API bool DetachProcess(Type::sys_handle_t handle);
     BEDBG_API bool IsAttachableProcess(int pid);
 
-    BEDBG_API bool DumpAssembly(Type::sys_handle_t handle);
-
     constexpr std::uint32_t BUFFER_SIZE = 260;
 
     struct ProcessModuleInformation
@@ -47,4 +45,6 @@ namespace BeDbgApi::Process
                                                                    _Out_writes_(
                                                                        sizeof(ProcessMemoryBlockInformation)* count)
                                                                    ProcessMemoryBlockInformation infos[], size_t count);
+
+    BEDBG_API Type::sys_handle_t CopyProcessHandle(Type::sys_handle_t handle);
 }

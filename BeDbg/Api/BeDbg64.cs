@@ -76,4 +76,7 @@ public class BeDbg64
 		var count = _queryProcessMemoryInfos(handle, infos, 1024);
 		return infos.Take((int) count);
 	}
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "CopyProcessHandle")]
+	public static extern IntPtr CopyProcessHandle(IntPtr handle);
 }

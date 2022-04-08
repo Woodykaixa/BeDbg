@@ -26,5 +26,13 @@ namespace BeDbg.Api
 
 		[DllImport(InteropConfig.Kernel, EntryPoint = "CloseHandle")]
 		public static extern bool CloseHandle(IntPtr handle);
+
+		public unsafe delegate void ThreadCb(void* param);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "CreateThread")]
+		public static extern bool CreateThread(string? fake, int stack, ThreadCb cb);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "ResumeThread")]
+		public static extern uint ResumeThread(IntPtr thread);
 	}
 }

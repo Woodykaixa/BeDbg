@@ -38,19 +38,12 @@ public abstract class BaseDebugger : DebugEventHandler
 	public Dictionary<uint, ProcessModel> Processes = new(16);
 	public Dictionary<long, RuntimeModuleModel> Modules = new(32);
 
-	protected BaseDebugger(int pid, long targetHandle)
-	{
-		TargetPid = pid;
-		TargetHandle = targetHandle;
-	}
-
 	public DebuggingProcess TargetProcess => new()
 	{
 		AttachTime = StartTime,
 		Handle = TargetHandle,
 		Id = TargetPid
 	};
-
 
 	public override unsafe bool OnException(uint process, uint thread, void* info)
 	{
@@ -150,19 +143,19 @@ public abstract class BaseDebugger : DebugEventHandler
 		return false;
 	}
 
-	protected void ReadProcessModules()
-	{
-		// var modules = BeDbg64.QueryProcessModules(new IntPtr(TargetHandle));
-		// Modules.Clear();
-		// Modules.AddRange(modules.Select(m => new RuntimeModuleModel()));
-	}
-
-	protected void ReadProcessMemoryPages()
-	{
-		MemPages.Clear();
-		var pages = BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle));
-		MemPages.AddRange(pages);
-	}
+	// protected void ReadProcessModules()
+	// {
+	// 	// var modules = BeDbg64.QueryProcessModules(new IntPtr(TargetHandle));
+	// 	// Modules.Clear();
+	// 	// Modules.AddRange(modules.Select(m => new RuntimeModuleModel()));
+	// }
+	//
+	// protected void ReadProcessMemoryPages()
+	// {
+	// 	MemPages.Clear();
+	// 	var pages = BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle));
+	// 	MemPages.AddRange(pages);
+	// }
 
 	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
 	{
@@ -201,7 +194,7 @@ public abstract class BaseDebugger : DebugEventHandler
 
 	protected void DebugLoop()
 	{
-		Process.EnterDebugMode();
+		// Process.EnterDebugMode();
 		while (DoDebugLoop)
 		{
 			if (!DebugLoopWaitEvent(CallbackHandle))
@@ -213,13 +206,8 @@ public abstract class BaseDebugger : DebugEventHandler
 
 	protected void StartDebugLoop()
 	{
+		// Kernel.DebugActiveProcess(TargetPid);
 		DebugLoop();
-		// TODO: use another thread
-		// if (_debugLoop != null)
-		// {
-		// 	return;
-		// }
-		//
-		// _debugLoop = new Task(DebugLoop);
+		// Kernel.DebugActiveProcessStop(TargetPid);
 	}
 }

@@ -12,34 +12,35 @@ public class CreateDebugger : BaseDebugger
 	private static extern int startProcess(string filename, string command, string? environment,
 		string? workingDirectory);
 
-	public static CreateDebugger CreateFromFile(string filename, string command, string? env, string? cwd)
+	public CreateDebugger(string filename, string command, string? env, string? cwd)
 	{
-		ApiError.Clear();
-		var pid = startProcess(filename, command, env, cwd);
-		if (pid == 0)
+		_debugLoop = Task.Factory.StartNew(() =>
 		{
-			throw ApiError.FormatError();
-		}
+			ApiError.Clear();
+			var pid = startProcess(filename, command, env, cwd);
+			if (pid == 0)
+			{
+				throw ApiError.FormatError();
+			}
 
-		var handle = BeDbg64.AttachProcess(pid).ToInt64();
-		if (handle == 0)
-		{
-			throw ApiError.FormatError();
-		}
 
-		return new CreateDebugger(pid, handle);
-	}
+			var handle = BeDbg64.AttachProcess(pid).ToInt64();
+			if (handle == 0)
+			{
+				throw ApiError.FormatError();
+			}
 
-	private CreateDebugger(int pid, long targetHandle) : base(pid, targetHandle)
-	{
-		// ReadProcessModules();
-		// ReadProcessMemoryPages();
 
-		StartDebugLoop();
+			TargetHandle = handle;
+			Kernel.DebugActiveProcess(pid);
+			StartDebugLoop();
+			Kernel.DebugActiveProcessStop(pid);
+		});
 	}
 
 	~CreateDebugger()
 	{
 		Kernel.TerminateProcess(new IntPtr(TargetHandle), 0);
+		Kernel.CloseHandle(new IntPtr(TargetHandle));
 	}
 }

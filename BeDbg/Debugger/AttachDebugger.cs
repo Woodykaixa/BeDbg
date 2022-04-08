@@ -7,31 +7,30 @@ namespace BeDbg.Debugger;
 /// </summary>
 public class AttachDebugger : BaseDebugger
 {
-	public static AttachDebugger Attach(int pid)
+	public AttachDebugger(int pid)
 	{
 		ApiError.Clear();
 		var handle = BeDbg64.AttachProcess(pid).ToInt64();
-		Kernel.DebugActiveProcess(pid);
 		if (handle == 0)
 		{
 			throw ApiError.FormatError();
 		}
 
-		return new AttachDebugger(pid, handle);
-	}
-
-	private AttachDebugger(int pid, long targetHandle) : base(pid, targetHandle)
-	{
-		ReadProcessModules();
-		// ReadProcessMemoryPages();
-		StartDebugLoop();
+		TargetHandle = handle;
+		TargetPid = pid;
+		_debugLoop = Task.Factory.StartNew(() =>
+		{
+			Kernel.DebugActiveProcess(pid);
+			StartDebugLoop();
+			Kernel.DebugActiveProcessStop(pid);
+		}, TaskCreationOptions.LongRunning);
 	}
 
 
 	~AttachDebugger()
 	{
 		ApiError.Clear();
-		Kernel.DebugActiveProcessStop(TargetPid);
+		// Kernel.DebugActiveProcessStop(TargetPid);
 
 		if (!BeDbg64.DetachProcess(new IntPtr(TargetHandle)))
 		{

@@ -36,6 +36,7 @@ std::uint32_t BeDbgApi::Process::StartProcess(const wchar_t* filename, const wch
         return 0;
     }
     const auto pid = GetProcessId(processInfo.hProcess);
+
     CloseHandle(processInfo.hProcess);
     CloseHandle(processInfo.hThread);
     return pid;
@@ -138,4 +139,16 @@ size_t _Success_(return > 0) BeDbgApi::Process::QueryProcessMemoryInfos(
         p += memInfo.RegionSize;
     }
     return i;
+}
+
+BeDbgApi::Type::sys_handle_t BeDbgApi::Process::CopyProcessHandle(Type::sys_handle_t handle)
+{
+    Type::sys_handle_t result;
+    if (DuplicateHandle(handle, handle, handle, &result, 0, true, DUPLICATE_SAME_ACCESS))
+    {
+        return result;
+    }
+    *Error::GetInnerError() = Error::Error{Error::ExceptionModule::SYSTEM, GetLastError(), L"DuplicateHandle"};
+
+    return nullptr;
 }
