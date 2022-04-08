@@ -1,4 +1,6 @@
-﻿using BeDbg.Api;
+﻿using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
+using BeDbg.Api;
 using BeDbg.Models;
 using Iced.Intel;
 
@@ -19,7 +21,7 @@ namespace BeDbg.Debugger;
 /// Classes inherited this class: <see cref="CreateDebugger"/>, <see cref="AttachDebugger"/>
 /// </para>
 /// </summary>
-public abstract class BaseDebugger
+public abstract class BaseDebugger : DebugEventHandler
 {
 	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
@@ -27,6 +29,7 @@ public abstract class BaseDebugger
 	public List<BeDbg64.ProcessModuleInformation> Modules { get; } = new(128);
 	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; } = new(128);
 
+	private Task? _debugLoop = null;
 	private ulong _rip = 0;
 
 	protected BaseDebugger(int pid, long targetHandle)
@@ -59,9 +62,9 @@ public abstract class BaseDebugger
 	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
 	{
 		var buffer = new byte[size];
-		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long)address), buffer, size, out var read);
+		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long) address), buffer, size, out var read);
 		var decoder = Decoder.Create(64, new ByteArrayCodeReader(buffer));
-		decoder.IP = (ulong)address;
+		decoder.IP = (ulong) address;
 		var endRip = decoder.IP + (uint) read;
 		var instructions = new List<Instruction>();
 		while (decoder.IP < endRip)
@@ -89,5 +92,33 @@ public abstract class BaseDebugger
 				Text = output.ToStringAndReset()
 			};
 		});
+	}
+
+	protected void DebugLoop()
+	{
+		Process.EnterDebugMode();
+		while (true)
+		{
+			if (!DebugLoopWaitEvent(CallbackHandle))
+			{
+				throw ApiError.FormatError();
+			}
+		}
+	}
+
+	protected void StartDebugLoop()
+	{
+		DebugLoop();
+		// if (_debugLoop != null)
+		// {
+		// 	return;
+		// }
+
+		// OnCreateProcess += (process, thread, info) =>
+		// {
+		// 	Console.WriteLine($"OnCreateProcess: {process}, {thread}, {info.lpStartAddress}");
+		// };
+
+		// _debugLoop = Task.Factory.StartNew(DebugLoop, TaskCreationOptions.LongRunning);
 	}
 }

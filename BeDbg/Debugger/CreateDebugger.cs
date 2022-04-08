@@ -12,22 +12,76 @@ public class CreateDebugger : BaseDebugger
 	private static extern int startProcess(string filename, string command, string? environment,
 		string? workingDirectory);
 
-	public CreateDebugger(string filename, string command, string? environment, string? workingDir) : base(0, 0)
+	public static CreateDebugger CreateFromFile(string filename, string command, string? env, string? cwd)
 	{
 		ApiError.Clear();
-		TargetPid = startProcess(filename, command, environment, workingDir);
-		if (TargetPid == 0)
+		var pid = startProcess(filename, command, env, cwd);
+		if (pid == 0)
 		{
 			throw ApiError.FormatError();
 		}
 
-		TargetHandle = BeDbg64.AttachProcess(TargetPid).ToInt64();
-		if (TargetHandle == 0)
+		var handle = BeDbg64.AttachProcess(pid).ToInt64();
+		if (handle == 0)
 		{
 			throw ApiError.FormatError();
 		}
-		ReadProcessMemoryPages();
-		ReadProcessModules();
+
+		return new CreateDebugger(pid, handle);
+	}
+
+	private CreateDebugger(int pid, long targetHandle) : base(pid, targetHandle)
+	{
+		// ReadProcessModules();
+		// ReadProcessMemoryPages();
+		
+		StartDebugLoop();
+	}
+
+	public override unsafe bool OnException(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnCreateThread(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnCreateProcess(uint process, uint thread, void* info)
+	{
+		Console.WriteLine($"CreateProcess {process} {thread}");
+		return true;
+	}
+
+	public override unsafe bool OnExitThread(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnExitProcess(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnLoadDll(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnUnloadDll(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnOutputDebugString(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override unsafe bool OnRip(uint process, uint thread, void* info)
+	{
+		throw new NotImplementedException();
 	}
 
 	~CreateDebugger()

@@ -210,16 +210,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="debug.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="env.h" />
-    <ClInclude Include="asm.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="process.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="debug.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="error.cpp" />
-    <ClCompile Include="asm.cpp" />
     <ClCompile Include="process.cpp" />
   </ItemGroup>
   <ItemGroup>

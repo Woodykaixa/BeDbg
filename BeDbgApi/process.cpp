@@ -7,7 +7,7 @@
 
 #include "error.h"
 
-BeDbgApi::Type::handle_t BeDbgApi::Process::AttachProcess(int pid)
+BeDbgApi::Type::sys_handle_t BeDbgApi::Process::AttachProcess(int pid)
 {
     if (const auto handle = OpenProcess(PROCESS_ALL_ACCESS, false, pid);
         handle != nullptr)
@@ -27,7 +27,7 @@ std::uint32_t BeDbgApi::Process::StartProcess(const wchar_t* filename, const wch
     fmt::format_to_n(cmdBuffer, MAX_PATH, L"{}{}", command, '\0');
     const auto success = CreateProcessW(filename, cmdBuffer, nullptr, nullptr, false,
                                         CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP |
-                                        CREATE_SUSPENDED | DEBUG_PROCESS | CREATE_DEFAULT_ERROR_MODE,
+                                        DEBUG_PROCESS | CREATE_DEFAULT_ERROR_MODE,
                                         environment, workingDirectory, &startupInfo,
                                         &processInfo);
     if (!success)
@@ -41,7 +41,7 @@ std::uint32_t BeDbgApi::Process::StartProcess(const wchar_t* filename, const wch
     return pid;
 }
 
-bool BeDbgApi::Process::DetachProcess(Type::handle_t handle)
+bool BeDbgApi::Process::DetachProcess(Type::sys_handle_t handle)
 {
     const auto success = CloseHandle(handle);
     if (!success)
@@ -60,7 +60,7 @@ bool BeDbgApi::Process::IsAttachableProcess(int pid)
     return false;
 }
 
-bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
+bool BeDbgApi::Process::QueryProcessModules(const Type::sys_handle_t handle,
                                             _Out_writes_(sizeof(ProcessModuleInformation)* count)
                                             ProcessModuleInformation
                                             modules[], const size_t count, size_t* usedCount)
@@ -96,7 +96,7 @@ bool BeDbgApi::Process::QueryProcessModules(const Type::handle_t handle,
 }
 
 size_t _Success_(return > 0) BeDbgApi::Process::QueryProcessMemoryInfos(
-    const Type::handle_t handle,
+    const Type::sys_handle_t handle,
     _Out_writes_(sizeof(ProcessMemoryBlockInformation)* count)
     ProcessMemoryBlockInformation infos[], const size_t count)
 {

@@ -22,7 +22,7 @@ public class DebugService
 	public DebuggingProcess CreateDebugProcess(string file, string command, string? environment,
 		string? workingDir)
 	{
-		var debugger = new CreateDebugger(file, command, environment, workingDir);
+		var debugger = CreateDebugger.CreateFromFile(file, command, environment, workingDir);
 		_debuggers.Add(debugger);
 		return debugger.TargetProcess;
 	}
@@ -34,7 +34,7 @@ public class DebugService
 			throw new Exception($"process {pid} already attached");
 		}
 
-		var debugger = new AttachDebugger(pid);
+		var debugger = AttachDebugger.Attach(pid);
 		_debuggers.Add(debugger);
 		return debugger.TargetProcess;
 	}

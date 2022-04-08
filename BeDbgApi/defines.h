@@ -5,6 +5,13 @@
 #define EXPORT __declspec(dllexport)
 #define BEDBG_API extern "C" EXPORT
 
+#ifndef NDEBUG
+#define TEST_ONLY_API BEDBG_API
+#elif
+#define TEST_ONLY_API  extern "C"
+#endif
+
+
 namespace BeDbgApi::Env
 {
 #ifndef _WIN64
@@ -25,7 +32,10 @@ namespace BeDbgApi::Env
 
 namespace BeDbgApi::Type
 {
-    using handle_t = void*;
+    template <typename T>
+    using handle_t = T*;
 
-    static_assert(sizeof(handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
+    using sys_handle_t = handle_t<void>;
+
+    static_assert(sizeof(sys_handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
 }

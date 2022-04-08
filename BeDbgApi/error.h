@@ -11,7 +11,7 @@ namespace BeDbgApi::Error
     {
         OK_NO_ERROR,
         SYSTEM,
-        ASM,
+        DEBUG,
         UNKNOWN
     };
 

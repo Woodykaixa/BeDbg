@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using BeDbg.Debugger;
 
 namespace BeDbg.Api
 {
@@ -16,5 +17,20 @@ namespace BeDbg.Api
 
 		[DllImport(InteropConfig.Kernel, EntryPoint = "TerminateProcess")]
 		public static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "DebugActiveProcess")]
+		public static extern bool DebugActiveProcess(int pid);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "DebugActiveProcessStop")]
+		public static extern bool DebugActiveProcessStop(int pid);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "ContinueDebugEvent")]
+		public static extern bool ContinueDebugEvent(uint pid, uint tid, uint status);
+
+		public static class ContinueStatus
+		{
+			public static uint Continue = 0x00010002;
+			public static uint NotHandled = 0x80010001;
+		}
 	}
 }
