@@ -50,7 +50,6 @@ DebugContinueStatus Internal::dispatchDebugEvent(const DEBUG_EVENT* event,
     }
     const auto cbArr = static_cast<DebugEventCallback<>*>(static_cast<void*>(callbacks));
     const auto cb = cbArr[eventCode - 1];
-    fmt::print(__FUNCTIONW__ L":: callback {}\n", static_cast<void*>(cb));
     if (cb == nullptr)
     {
         return DebugContinueStatus::Continue;
@@ -71,14 +70,7 @@ DebugContinueStatus BeDbgApi::Debug::DebugLoopWaitEvent(const Type::handle_t<Deb
         return DebugContinueStatus::NotHandled;
     }
     const auto result = Internal::dispatchDebugEvent(&event, callbacks);
-    fmt::print(__FUNCTIONW__ L":: event {}, result {}\n", event.dwDebugEventCode, static_cast<bool>(result));
-    if (static_cast<bool>(result))
-    {
-        ContinueDebugEvent(event.dwProcessId, event.dwThreadId, DBG_CONTINUE);
-    }
-    else
-    {
-        ContinueDebugEvent(event.dwProcessId, event.dwThreadId, DBG_EXCEPTION_NOT_HANDLED);
-    }
+    const auto debugStatusCode = result == DebugContinueStatus::Continue ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED;
+    ContinueDebugEvent(event.dwProcessId, event.dwThreadId, debugStatusCode);
     return result;
 }

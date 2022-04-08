@@ -3,16 +3,163 @@ using BeDbg.Api;
 
 namespace BeDbg.Debugger;
 
+/// <summary>
+/// <para>
+///	Handle <a href="https://docs.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-debug_event">DEBUG_EVENT</a>.
+/// Each abstract OnXxx method handles one debug event. When <see cref="DebugLoopWaitEvent">DebugLoopWaitEvent</see> is called
+/// in DebugLoop, it retrieves <i>DEBUG_EVENT</i>, and dispatch to corresponding handler depends on <i>dwDebugEventCode</i>.
+/// </para>
+///
+/// <para>
+/// For more information about debug event's fields,
+/// see https://docs.microsoft.com/en-us/windows/win32/debug/debugging-events
+/// </para>
+/// </summary>
 public abstract class DebugEventHandler
 {
+	/// <summary>
+	/// Handles EXCEPTION_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
+	/// <returns><b>true</b> represents DBG_CONTINUE, <b>false</b> represents DBG_EXCEPTION_NOT_HANDLED</returns>
 	public abstract unsafe bool OnException(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles CREATE_THREAD_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnCreateThread(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles CREATE_PROCESS_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnCreateProcess(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles EXIT_THREAD_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnExitThread(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles EXIT_PROCESS_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnExitProcess(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles LOAD_DLL_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnLoadDll(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles UNLOAD_DLL_DEBUG_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnUnloadDll(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles OUTPUT_DEBUG_STRING_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnOutputDebugString(uint process, uint thread, void* info);
+
+	/// <summary>
+	/// Handles RIP_EVENT
+	/// </summary>
+	/// <param name="process">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="thread">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <param name="info">
+	/// <inheritdoc cref="OnException"/>
+	/// </param>
+	/// <returns>
+	/// <inheritdoc cref="OnException"/>
+	/// </returns>
 	public abstract unsafe bool OnRip(uint process, uint thread, void* info);
 
 	public unsafe delegate bool DebugEventCallback(uint process, uint thread, void* info);
@@ -56,7 +203,7 @@ public abstract class DebugEventHandler
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
-public struct ExceptionRecord
+public unsafe struct ExceptionRecord
 {
 	public uint ExceptionCode;
 	public uint ExceptionFlags;
@@ -65,7 +212,7 @@ public struct ExceptionRecord
 	public uint NumberParameters;
 
 	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 15, ArraySubType = UnmanagedType.SysInt)]
-	public ulong[] ExceptionInformation;
+	public ulong* ExceptionInformation;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]

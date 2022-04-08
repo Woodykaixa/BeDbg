@@ -28,54 +28,6 @@ public class AttachDebugger : BaseDebugger
 	}
 
 
-	public override unsafe bool OnException(uint process, uint thread, void* info)
-	{
-		Console.WriteLine($"Exception {process} {thread}");
-		return true;
-	}
-
-	public override unsafe bool OnCreateThread(uint process, uint thread, void* info)
-	{
-		Console.WriteLine($"CreateThread {process} {thread}");
-		return true;
-	}
-
-	public override unsafe bool OnCreateProcess(uint process, uint thread, void* info)
-	{
-		Console.WriteLine($"CreateProcess {process} {thread}");
-		return true;
-	}
-
-	public override unsafe bool OnExitThread(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
-	public override unsafe bool OnExitProcess(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
-	public override unsafe bool OnLoadDll(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
-	public override unsafe bool OnUnloadDll(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
-	public override unsafe bool OnOutputDebugString(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
-	public override unsafe bool OnRip(uint process, uint thread, void* info)
-	{
-		throw new NotImplementedException();
-	}
-
 	~AttachDebugger()
 	{
 		ApiError.Clear();

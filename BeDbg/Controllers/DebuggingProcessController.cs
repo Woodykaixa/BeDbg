@@ -47,7 +47,6 @@ namespace BeDbg.Controllers
 		{
 			var (file, command) = request;
 			var process = _debugService.CreateDebugProcess(file, command, null, null);
-
 			return process.Id;
 		}
 
@@ -57,7 +56,10 @@ namespace BeDbg.Controllers
 			var debugger = _debugService.FindOneByPid(pid);
 			if (debugger != null)
 			{
-				return Ok(debugger.Modules.Select(mod => new ProcessModule(mod.Name, mod.Entry, mod.Size, mod.Size)));
+				return Ok(debugger.Processes.Select((mod) =>
+					new ProcessModule("", (ulong) mod.Value.Threads[mod.Value.MainThread].Entry.ToInt64(),
+						0,
+						(ulong) mod.Value.Threads[mod.Value.MainThread].Address.ToInt64())));
 			}
 
 			return NotFound();
