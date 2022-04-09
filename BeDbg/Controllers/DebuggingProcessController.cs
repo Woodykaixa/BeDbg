@@ -56,10 +56,10 @@ namespace BeDbg.Controllers
 			var debugger = _debugService.FindOneByPid(pid);
 			if (debugger != null)
 			{
-				return Ok(debugger.Processes.Select((mod) =>
-					new ProcessModule("", (ulong) mod.Value.Threads[mod.Value.MainThread].Entry.ToInt64(),
+				return Ok(debugger.Modules.Select(mod =>
+					new ProcessModule(mod.Value.ImageName, (ulong) mod.Value.ImageBase.ToInt64(),
 						0,
-						(ulong) mod.Value.Threads[mod.Value.MainThread].Address.ToInt64())));
+						(ulong) mod.Value.ImageBase.ToInt64())));
 			}
 
 			return NotFound();

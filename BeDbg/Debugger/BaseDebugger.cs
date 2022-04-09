@@ -27,7 +27,6 @@ public abstract class BaseDebugger : DebugEventHandler
 
 	public long TargetHandle { get; internal set; }
 
-	// public List<BeDbg64.ProcessModuleInformation> Modules { get; } = new(128);
 	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; } = new(128);
 
 	protected Task? _debugLoop;
@@ -65,7 +64,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	public override unsafe bool OnCreateProcess(uint process, uint thread, void* info)
 	{
 		var processInfo = (CreateProcessDebugInfo*) info;
-		Processes[process] = new ProcessModel
+		var currentProcess = new ProcessModel
 		{
 			Id = process,
 			MainThread = thread,
@@ -78,13 +77,18 @@ public abstract class BaseDebugger : DebugEventHandler
 			}
 		};
 
-		Modules[processInfo->lpBaseOfImage.ToInt64()] =
-			new RuntimeModuleModel(processInfo->hFile, processInfo->lpImageName, processInfo->fUnicode)
-			{
-				ImageBase = processInfo->lpBaseOfImage,
-				DebugInfoOffset = processInfo->dwDebugInfoFileOffset,
-				DebugInfoSize = processInfo->nDebugInfoSize,
-			};
+		var module = new RuntimeModuleModel(processInfo->hFile, processInfo->lpImageName, processInfo->fUnicode)
+		{
+			ImageBase = processInfo->lpBaseOfImage,
+			DebugInfoOffset = processInfo->dwDebugInfoFileOffset,
+			DebugInfoSize = processInfo->nDebugInfoSize,
+		};
+
+		module.LoadModuleName(currentProcess);
+
+		Processes[process] = currentProcess;
+		Modules[processInfo->lpBaseOfImage.ToInt64()] = module;
+
 		Console.WriteLine($"CreateProcess {process} {thread}");
 		return true;
 	}
@@ -114,12 +118,14 @@ public abstract class BaseDebugger : DebugEventHandler
 	public override unsafe bool OnLoadDll(uint process, uint thread, void* info)
 	{
 		var dll = (LoadDllDebugInfo*) info;
-		Modules[dll->lpBaseOfDll.ToInt64()] = new RuntimeModuleModel(dll->hFile, dll->lpImageName, dll->fUnicode)
+		var module = new RuntimeModuleModel(dll->hFile, dll->lpImageName, dll->fUnicode)
 		{
 			DebugInfoOffset = dll->dwDebugInfoFileOffset,
 			DebugInfoSize = dll->fUnicode,
 			ImageBase = dll->lpBaseOfDll
 		};
+		module.LoadModuleName(Processes[process]);
+		Modules[dll->lpBaseOfDll.ToInt64()] = module;
 		return true;
 	}
 
