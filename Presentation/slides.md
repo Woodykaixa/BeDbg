@@ -49,12 +49,17 @@ h1 {
 
 # 项目背景
 
-现有的调试器不利于同学们入门逆向工程
+- 调试器是一种应用程序，它可以控制和修改软件的运行流程，以及查看软件运行信息 (寄存器，内存，汇编……)
 
-- IDA Pro: 😣 价格昂贵
-- OllyDbg: 😭 年代久远，不支持 64 位程序
-- WinDbg:  😫 仅支持命令行
-- x64dbg:  😊 免费！图形界面！支持 64 位！😯 但是不利于同学们开发扩展
+- 对于逆向工程工程师来说，调试器可以帮助他们分析软件的行为，以便于识别恶意代码或是挖掘漏洞 
+
+- 尽管现代调试器功能强大，但是它们不利于初学者入门逆向工程
+  - OllyDbg: 😭 年代久远，不支持 64 位程序
+    > 根据 [OllyDbg 官网](http://www.ollydbg.de/)，目前尚未支持 x64 汇编
+  - WinDbg:  😫 仅支持命令行
+    > 根据[微软官方文档](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/debugging-using-windbg-preview)，预览版本已经支持图形界面，但交互方式依然使用命令行形式
+  - x64dbg:  😊 免费！图形界面！支持 64 位！😯 但是 C++ SDK 不利于开发扩展
+    > C++ 语言难度较高，如想修改图形界面还需要 QT 框架使用经验 
 
 ---
 
@@ -66,8 +71,8 @@ h1 {
 
 <br>
 
-1. 提供包含基本信息的图形界面，帮助新同学快速入门逆向工程
-2. 提供基于高级语言的插件 SDK，以便同学自行开发插件
+1. 提供包含基本信息的图形界面，帮助初学者入门逆向工程
+2. 提供基于高级语言的插件 SDK，以便自行开发插件
 
 ---
 
@@ -79,7 +84,7 @@ h1 {
   - 无需关心客户端，将系统功能实现的核心部分集中到服务器上，简化了系统的开发、维护和使用
   - 技术选型
     - 用户界面: Vue
-    - 服务器: C#
+    - 服务器和调试器主框架: C#
     - 调试器核心功能: C++
 
   
@@ -112,18 +117,19 @@ flowchart LR
 
 subgraph 调试器模块依赖关系
 
-api[C++ 核心API]
+api[核心 API]
 
-server[C# 后端服务器]
+server[服务器]
 
-client[Vue3 前端界面]
+client[用户界面]
 
-plugin[插件 SDK]
+plugin[JS 插件]
 
 server -- 调用 --> api
 client -- 请求调试操作 --> server
 server -- 返回调试内容 --> client
 plugin -- 替代用户操作 --> server
+plugin -- 扩展用户界面 --> client
 
 end
 
@@ -132,10 +138,10 @@ end
 
 <div class="text-left flex-1">
 
-- C++ 核心 API: 调用 Windows Debug API 实现调试器功能
-- C# 后端服务器: 调用 C++ API 提供调试服务，并提供额外信息
-- Vue3 前端界面: 接受用户操作，并使用服务器展示调试信息
-- 插件 SDK: 封装调试服务接口，为前端界面提供补充信息或替代用户重复操作
+- 核心 API: 调用 Windows Debug API 实现调试器核心功能
+- 服务器: 调用核心 API 形成调试器本体，对外提供调试服务
+- 用户界面: 展示调试数据；接受用户操作，告知服务器进行数据更新
+- 插件 SDK: 封装调试服务接口，可扩展用户界面提供补充信息或替代用户重复操作
 
 </div>
 </div>
@@ -155,10 +161,12 @@ StartDebug: 启动调试
 DebugLoop: 调试循环
 
 state InitServer {
+  direction TB
+
   LoadApi: 加载核心 API
   StartProgram: 启动程序
   PrepareHttpServer: 准备 HTTP 服务器
-  PrepareClient: 准备前端界面
+  PrepareClient: 准备用户界面
   WaitForDebug: 等待启动调试
 
   StartProgram --> LoadApi
@@ -172,48 +180,24 @@ InitServer --> StartDebug
 StartDebug --> DebugLoop
 
 state DebugLoop {
+  direction TB
+  
   ListenDebugEvent: 等待调试事件
   WaitForUserInput: 等待用户操作
   UpdateProcessData: 更新进程数据
   state UserDirective <<choice>>
-  UPdateUI: 更新前端界面
+  UpdateUI: 更新用户界面
   ExitDebug: 退出调试
-  
+    
   ListenDebugEvent --> UpdateProcessData
   WaitForUserInput --> UserDirective
   UserDirective --> ExitDebug: 退出指令
   UserDirective --> UpdateProcessData: 进程修改指令
   UpdateProcessData --> ListenDebugEvent
   UpdateProcessData --> WaitForUserInput
-  UpdateProcessData --> UPdateUI
+  UpdateProcessData --> UpdateUI
 }
-```
 
----
-
-# 项目结构
-
-```
-BeDbg 项目   
-|
-+-- Api
-|    |    
-|    +--  // 核心 API 代码
-|    
-+-- BeDbg
-|    |
-|    +-- Client
-|    |    |
-|    |    +-- // 前端界面代码
-|    |    
-|    +-- Debugger 
-|    |    +-- // 调试器代码
-|    | 
-|    +-- // 后端服务器代码
-|
-+-- Test
-     |    
-     +--  // 核心 API 单元测试
 ```
 
 ---
@@ -223,25 +207,107 @@ BeDbg 项目
 |            |     |
 | ---------- | --- |
 | 核心 API   | 85% |
-| 后端服务器 | 60% |
-| 前端界面   | 60% |
-| 插件 SDK   | 70% |
+| 服务器     | 60% |
+| 用户界面   | 60% |
+| 插件 SDK   | 50% |
+
++ ☑ 已完全实现调试器初始化
++ ☑ 支持从可执行程序/用户进程启动调试
++ 🔜 调试循环正在开发中
+  + ☑ 监听并处理系统事件
+  + ☑ 支持从进程读取汇编、内存等底层信息
+  + 🔜 正在构建用户操作监听机制
+
+
+<style>
+ul {
+  @apply mt-4;
+}
+
+li ul {
+  @apply mt-0;
+}
+</style>
 
 ---
 
-# 毕设进度
-
-支持启动 Windows 可执行文件
+## 支持启动 Windows 可执行文件
 
 ![create file](/assets/bedbg-index-file.png)
 
 ---
 
-# 毕设进度
+## 调试循环实现
 
-支持附加 Windows 进程
+```cpp {1-2,7-8,12,15,17,20,22}
+DebugContinueStatus Internal::dispatchDebugEvent(const DEBUG_EVENT* event, const DebugLoopCallbacks* callbacks) {
+    const auto eventCode = event->dwDebugEventCode;
 
-![attach process](/assets/bedbg-index-process.png)
+    if (eventCode < EXCEPTION_DEBUG_EVENT || eventCode > RIP_EVENT) {
+        // ... 错误处理
+    }
+    const auto cbArr = static_cast<DebugEventCallback<>*>(static_cast<void*>(callbacks));
+    const auto cb = cbArr[eventCode - 1];
+    if (cb == nullptr) {
+        return DebugContinueStatus::Continue;
+    }
+    return cb(event->dwProcessId, event->dwThreadId, &event->u);
+}
+
+DebugContinueStatus BeDbgApi::Debug::DebugLoopWaitEvent(const DebugLoopCallbacks* callbacks) {
+    DEBUG_EVENT event;
+    if (!WaitForDebugEvent(&event, INFINITE)) {
+        // ... 错误处理
+    }
+    const auto result = Internal::dispatchDebugEvent(&event, callbacks);
+    const auto debugStatusCode = result == DebugContinueStatus::Continue ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED;
+    ContinueDebugEvent(event.dwProcessId, event.dwThreadId, debugStatusCode);
+    return result;
+}
+``` 
+
+<style>
+h1 {
+  @apply mb-0;
+}
+</style>
+
+---
+
+## 调试循环实现
+
+```csharp {4-5,8,13,15-18,22}
+public abstract class BaseDebugger {
+  protected BaseDebugger()
+	{
+		// 创建调试循环
+		_debugLoop = Task.Factory.StartNew(() =>
+		{
+			Kernel.DebugActiveProcess(pid);
+			DebugLoop();
+			Kernel.DebugActiveProcessStop(pid);
+		}, TaskCreationOptions.LongRunning);
+	}
+
+  protected void DebugLoop()
+	{
+		Process.EnterDebugMode();
+		while (DoDebugLoop)
+		{
+			if (!DebugLoopWaitEvent(CallbackHandle))
+			{
+				// ... 错误处理
+			}
+		}
+	}
+}
+```
+
+<style>
+h1 {
+  @apply mb-0;
+}
+</style>
 
 ---
 
@@ -249,45 +315,46 @@ BeDbg 项目
 
 支持查看主线程汇编代码，与 x64dbg 比对后证实代码无误
 
-![cmp asm](/assets/asm-cmp.jpg)
+<img src="/assets/asm-cmp.jpg" alt="" v-motion
+  :initial="{
+    scale: 1,
+  }"
+  :tapped="{
+    scale: 1.3,
+    'transform-origin': 'center top',
+    transition: {
+      duration: 1000,
+      ease: 'linear'
+    },
+  }" />
 
 ---
 
-# 毕设任务安排
+# 后续
 
-```mermaid {scale: 0.9}
+```mermaid
 
 gantt
-  title 任务进度
+  title 任务时间安排
   dateFormat YYYY-MM-DD
 
-  section 项目公共架构
-  仓库初始化 :done, init , 2022-03-02, 1d
-  确定项目技术选型 :done, sel-tech-stack, after init, 6d
-  流水线配置 :done, after init, 13d
-
   section C++ 核心 API
-  核心 API 项目配置 :done, after init  , 2d
-  调试器错误处理 API :done, after server-conf client-conf, 8d
-  进程 API :done, show-process-api, after server-conf client-conf, 8d
-  调试进程 API :active, dbg-process-api, after show-process-api, 27d
-  调试内存 API :active, dbg-memory-api, after show-process-api, 27d
+  查漏补缺: active, api-add-and-fix, now, 3w
 
   section 后端服务器
-  后端项目配置 : done, server-conf, after init, 6d
-  系统进程 API : done, server-show-process, after server-conf client-conf, 4d
-  系统文件 API : done, server-file-api, after server-show-process, 4d
-  进程创建 API : done, server-process-api, after server-file-api, 4d
+  前后端通信机制: active, websocket-loop, now, 1w
+  接收用户操作: server-controllers, after websocket-loop, 1w
 
   section 前端界面
-  前端项目配置 : done, client-conf, after sel-tech-stack, 1d
-  展示系统进程 : done, show-process, after server-conf client-conf, 4d
-  选取文件启动 : done, client-start-file, after server-show-process, 5d
-  附加进程启动 : done, client-start-process, after client-start-file, 2d
+  用户界面设计: client-ui, after websocket-loop, 1w
 
   section 插件 SDK
-  插件功能接口 :active, after init , 2022-03-14, 31d
+  插件功能接口 :active, plugin-sdk,  now, 2w
+  插件界面扩展接口 : after websocket-loop, 1w
 
+  section 收尾工作
+  bug 修复: bug-fix, after client-ui, 3d
+  生产环境测试: after bug-fix, 4d
 
 ```
 
