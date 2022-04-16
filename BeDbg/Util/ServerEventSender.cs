@@ -18,7 +18,7 @@ public class ServerEventSender
 		await Response.Body.FlushAsync();
 	}
 
-	public async Task SendEventAsync<T>(DebuggerEvent<T> debuggerEvent) where T : DebuggerEventPayload
+	public async Task SendEventAsync(DebuggerEvent debuggerEvent)
 	{
 		if (Response == null)
 		{
@@ -37,7 +37,7 @@ public class ServerEventSender
 
 		// Write: data: {data}\n\n
 		await Response.WriteAsync("data: ");
-		var jsonData = JsonSerializer.Serialize((object) debuggerEvent.Payload!, new JsonSerializerOptions()
+		var jsonData = JsonSerializer.Serialize(debuggerEvent.Payload ?? null, new JsonSerializerOptions()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 		});

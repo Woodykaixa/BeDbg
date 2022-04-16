@@ -1,13 +1,13 @@
-import { DebuggerEventPayload, DebuggerEvents, DebuggerEventTypes } from '@/dto/debuggerEvent';
+import { DebuggerEvents, DebuggerEventTypes } from '@/dto/debuggerEvent';
 
 type DebuggerEvent = typeof DebuggerEventTypes[number];
-type DebuggerEventListener<PayloadType extends DebuggerEventPayload> = (payload: PayloadType) => void;
+type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: DebuggerEvents[EventType]) => void;
 
 export class DebuggerEventSource {
-  private eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<DebuggerEvents[eventType]>[] };
-  private eventSource: EventSource;
+  #eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
+  #eventSource: EventSource;
   constructor(url: string) {
-    this.eventListeners = {
+    this.#eventListeners = {
       exception: [],
       createThread: [],
       createProcess: [],
@@ -17,37 +17,34 @@ export class DebuggerEventSource {
       unloadDll: [],
       outputDebugString: [],
       rip: [],
+      exitProgram: [],
     };
 
-    this.eventSource = new EventSource(url);
+    this.#eventSource = new EventSource(url);
 
-    this.eventSource.onopen = () => {
+    this.#eventSource.onopen = () => {
       console.log('DebuggerEventSource connected');
     };
-    this.eventSource.onerror = (event: Event) => {
+    this.#eventSource.onerror = (event: Event) => {
       console.log('DebuggerEventSource error:', event);
     };
 
     DebuggerEventTypes.forEach(type => {
-      this.eventSource.addEventListener(type, event => {
+      this.#eventSource.addEventListener(type, event => {
         const payload = JSON.parse(event.data);
-        this.eventListeners[type].forEach(listener => listener(payload));
+        this.#eventListeners[type].forEach(listener => listener(payload));
       });
     });
   }
-  addEventListener<EventType extends DebuggerEvent>(
-    type: EventType,
-    listener: DebuggerEventListener<DebuggerEvents[EventType]>
-  ) {
-    this.eventListeners[type].push(listener);
+
+  addEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
+    this.#eventListeners[type].push(listener);
   }
-  removeEventListener<EventType extends DebuggerEvent>(
-    type: EventType,
-    listener: DebuggerEventListener<DebuggerEvents[EventType]>
-  ) {
-    const index = this.eventListeners[type].indexOf(listener);
+
+  removeEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
+    const index = this.#eventListeners[type].indexOf(listener);
     if (index >= 0) {
-      this.eventListeners[type].splice(index, 1);
+      this.#eventListeners[type].splice(index, 1);
     }
   }
 }

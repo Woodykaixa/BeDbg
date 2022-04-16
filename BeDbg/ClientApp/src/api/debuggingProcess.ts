@@ -33,7 +33,8 @@ export const DebuggingProcess = {
           'content-type': 'application/json',
           accept: 'application/json',
         },
-      })
+      }),
+      true
     );
   },
 

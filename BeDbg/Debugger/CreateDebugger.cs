@@ -30,7 +30,7 @@ public class CreateDebugger : BaseDebugger
 				throw ApiError.FormatError();
 			}
 
-
+			TargetPid = pid;
 			TargetHandle = handle;
 			Kernel.DebugActiveProcess(pid);
 			StartDebugLoop();

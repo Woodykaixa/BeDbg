@@ -15,10 +15,10 @@ public class DebuggerController : ControllerBase
 		_debugService = debugService;
 	}
 
-	[HttpGet("{pid:int}/event")]
-	public async Task ServerSentDebuggingEvent(int pid)
+	[HttpGet("{index:int}/event")]
+	public async Task ServerSentDebuggingEvent(int index)
 	{
-		var debugger = _debugService.FindOneByPid(pid);
+		var debugger = _debugService.FindOneByIndex(index);
 		if (debugger == null)
 		{
 			return;

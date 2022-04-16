@@ -1,8 +1,8 @@
 ﻿namespace BeDbg.Dto;
 
-public class DebuggerEvent<T> where T : DebuggerEventPayload
+public class DebuggerEvent
 {
-	public T? Payload { get; set; }
+	public object? Payload { get; set; }
 	public string Event { get; set; } = "message";
 	public string? Id { get; set; }
 }

@@ -68,6 +68,59 @@ const process = reactive({
   modules: [] as ProcessModule[],
   pages: [] as (ProcessMemoryPage & { data: string })[],
 });
+
+async function InitializeDebugger() {
+  eventSource = new DebuggerEventSource('/api/debugger/0/event');
+  eventSource.addEventListener('createProcess', e => {
+    console.log(e);
+  });
+
+  eventSource.addEventListener('exitProgram', stopDebug);
+
+  eventSource.addEventListener('exception', async exceptionData => {
+    const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(process.id);
+    const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(process.id);
+
+    if (!moduleOk || !pageOk) {
+      const err = (moduleOk ? pages : modules) as ErrorResponse;
+      notification.error({
+        title: '无法获取进程模块',
+        description: err.error,
+        content: err.message,
+      });
+      router.push('/');
+      return;
+    }
+    const map = new Map<number, ProcessModule>();
+    modules.forEach(m => {
+      map.set(m.base, m);
+    });
+    process.modules = modules.sort((a, b) => a.base - b.base);
+    process.pages = pages
+      .sort((a, b) => a.baseAddress - b.baseAddress)
+      .map(m => {
+        const module = map.get(m.baseAddress);
+        if (module) {
+          return {
+            ...m,
+            data: module.name,
+          };
+        }
+        return {
+          ...m,
+          data: '',
+        };
+      });
+    const { ok, data } = await Api.DebuggingProcess.disassemble(process.id);
+    if (ok) {
+      debugData.instr = data.map(i => ({
+        address: i.ip,
+        text: i.text,
+      }));
+    }
+  });
+}
+
 async function CheckDebugging() {
   const { data, ok } = await Api.DebuggingProcess.list();
   if (ok) {
@@ -82,52 +135,6 @@ async function CheckDebugging() {
     process.id = data[0].id;
     process.attachTime = data[0].attachTime;
     process.handle = data[0].handle;
-    eventSource = new DebuggerEventSource('/api/debugger/' + process.id + '/event');
-    eventSource.addEventListener('createProcess', e => {
-      console.log(e);
-    });
-    {
-      const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(process.id);
-      const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(process.id);
-
-      if (!moduleOk || !pageOk) {
-        const err = (moduleOk ? pages : modules) as ErrorResponse;
-        notification.error({
-          title: '无法获取进程模块',
-          description: err.error,
-          content: err.message,
-        });
-        router.push('/');
-        return;
-      }
-      const map = new Map<number, ProcessModule>();
-      modules.forEach(m => {
-        map.set(m.base, m);
-      });
-      process.modules = modules.sort((a, b) => a.base - b.base);
-      process.pages = pages
-        .sort((a, b) => a.baseAddress - b.baseAddress)
-        .map(m => {
-          const module = map.get(m.baseAddress);
-          if (module) {
-            return {
-              ...m,
-              data: module.name,
-            };
-          }
-          return {
-            ...m,
-            data: '',
-          };
-        });
-      const { ok, data } = await Api.DebuggingProcess.disassemble(process.id);
-      if (ok) {
-        debugData.instr = data.map(i => ({
-          address: i.ip,
-          text: i.text,
-        }));
-      }
-    }
   } else {
     notification.error({
       title: '无法获取调试中进程',
@@ -140,7 +147,8 @@ async function CheckDebugging() {
 }
 
 onMounted(() => {
-  CheckDebugging();
+  CheckDebugging(); // If debugger is not present, we will redirect to home page.
+  InitializeDebugger(); // So we don't need to check return value here.
 });
 
 const stopDebug = async () => {

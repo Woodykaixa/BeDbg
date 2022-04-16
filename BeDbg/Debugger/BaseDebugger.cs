@@ -27,7 +27,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	protected readonly CancellationTokenSource CancellationTokenSource = new();
 	public CancellationToken CancellationToken => CancellationTokenSource.Token;
 
-	public Queue<DebuggerEvent<DebuggerEventPayload>> DebuggerEventList = new(64);
+	public Queue<DebuggerEvent> DebuggerEventList = new(64);
 	// public Task? DebuggerEventLoop { get; set; }
 
 	public DateTime StartTime { get; } = DateTime.Now;
@@ -61,7 +61,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	public override unsafe bool OnException(uint process, uint thread, void* info)
 	{
 		var exceptionRecord = (ExceptionDebugInfo*) info;
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "exception",
 			Payload = new ExceptionPayload()
@@ -82,7 +82,7 @@ public abstract class BaseDebugger : DebugEventHandler
 		var threadInfo = (CreateThreadDebugInfo*) info;
 		Processes[process].Threads[thread] = new ThreadModel(thread, threadInfo->hThread, threadInfo->lpStartAddress,
 			threadInfo->lpThreadLocalBase);
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "createThread",
 			Payload = new CreateThreadPayload
@@ -124,7 +124,7 @@ public abstract class BaseDebugger : DebugEventHandler
 		Processes[process] = currentProcess;
 		Modules[processInfo->lpBaseOfImage.ToInt64()] = module;
 
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "createProcess",
 			Payload = new CreateProcessPayload
@@ -143,7 +143,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var exitCode = ((ExitThreadDebugInfo*) info)->dwExitCode;
 		Processes[process].Threads.Remove(thread);
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "exitThread",
 			Payload = new ExitThreadPayload
@@ -160,7 +160,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var exitCode = ((ExitProcessDebugInfo*) info)->dwExitCode;
 		Processes.Remove(process);
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "exitProcess",
 			Payload = new ExitProcessPayload
@@ -171,10 +171,16 @@ public abstract class BaseDebugger : DebugEventHandler
 			}
 		});
 
-		if (Processes.Count == 0)
+		if (Processes.Count != 0)
 		{
-			DoDebugLoop = false;
+			return true;
 		}
+
+		DoDebugLoop = false;
+		DebuggerEventList.Enqueue(new DebuggerEvent
+		{
+			Event = "exitProgram",
+		});
 
 		return true;
 	}
@@ -190,7 +196,7 @@ public abstract class BaseDebugger : DebugEventHandler
 		};
 		module.LoadModuleName(Processes[process]);
 		Modules[dll->lpBaseOfDll.ToInt64()] = module;
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "loadDll",
 			Payload = new LoadDllPayload
@@ -207,7 +213,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var unload = (UnloadDllDebugInfo*) info;
 		Modules.Remove(unload->lpBaseOfDll.ToInt64());
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "unloadDll",
 			Payload = new UnloadDllPayload
@@ -223,7 +229,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	public override unsafe bool OnOutputDebugString(uint process, uint thread, void* info)
 	{
 		// TODO: handle OutputDebugString Event
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "unloadDll",
 			Payload = new OutputDebugStringPayload
@@ -240,7 +246,7 @@ public abstract class BaseDebugger : DebugEventHandler
 		var rip = (RipInfo*) info;
 		Console.Error.WriteLine(
 			$"Rip Error: Process {process}, Thread {thread}, Code {rip->dwError}, Type {rip->dwType}");
-		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "rip",
 			Payload = new RipPayload

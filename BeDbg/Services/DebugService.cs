@@ -19,6 +19,16 @@ public class DebugService
 		return _debuggers.Find(dbg => dbg.TargetPid == pid);
 	}
 
+	public BaseDebugger? FindOneByIndex(int index)
+	{
+		if (index < 0 || index >= _debuggers.Count)
+		{
+			return null;
+		}
+
+		return _debuggers[index];
+	}
+
 	public DebuggingProcess CreateDebugProcess(string file, string command, string? environment,
 		string? workingDir)
 	{

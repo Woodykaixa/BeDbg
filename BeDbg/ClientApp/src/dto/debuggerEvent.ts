@@ -52,16 +52,18 @@ export const DebuggerEventTypes = [
   'unloadDll',
   'outputDebugString',
   'rip',
+  'exitProgram',
 ] as const;
 
 export type DebuggerEvents = {
-  exception: ExceptionPayload;
-  createThread: CreateThreadPayload;
-  createProcess: CreateProcessPayload;
-  exitThread: ExitThreadPayload;
-  exitProcess: ExitProcessPayload;
-  loadDll: LoadDllPayload;
-  unloadDll: UnloadDllPayload;
-  outputDebugString: OutputDebugStringPayload;
-  rip: RipPayload;
+  exception: [ExceptionPayload];
+  createThread: [CreateThreadPayload];
+  createProcess: [CreateProcessPayload];
+  exitThread: [ExitThreadPayload];
+  exitProcess: [ExitProcessPayload];
+  loadDll: [LoadDllPayload];
+  unloadDll: [UnloadDllPayload];
+  outputDebugString: [OutputDebugStringPayload];
+  rip: [RipPayload];
+  exitProgram: [];
 };
