@@ -23,7 +23,7 @@ public class AttachDebugger : BaseDebugger
 			Kernel.DebugActiveProcess(pid);
 			StartDebugLoop();
 			Kernel.DebugActiveProcessStop(pid);
-		}, TaskCreationOptions.LongRunning);
+		}, TaskCreationOptions.LongRunning);  
 	}
 
 

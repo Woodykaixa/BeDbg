@@ -76,6 +76,20 @@ export default defineConfig({
         },
         secure: false,
       },
+      // '^wss?://.*': {
+      //   target: apiUrl,
+      //   changeOrigin: true,
+      //   secure: false,
+      //   rewrite: path => {
+      //     const result = path.replace('http', 'ws');
+      //     console.log('rewrite ws url:', path, 'to', result);
+      //     return result;
+      //   },
+      //   headers: {
+      //     Connection: 'keep-alive',
+      //   },
+      //   ws: true,
+      // },
     },
   },
   resolve: {

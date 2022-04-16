@@ -38,6 +38,7 @@
   <ItemGroup>
     <Folder Include="Exceptions\" />
     <Folder Include="Services\" />
+    <Folder Include="Dto\" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

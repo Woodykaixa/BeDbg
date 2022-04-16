@@ -17,6 +17,8 @@ import {
 import { Api } from '@/api';
 import { ProcessModule, ProcessMemoryPage } from '@/dto/process';
 import { ErrorResponse } from '@/dto/error';
+import { DebuggerEventSource } from '@/util/debuggerEventSource';
+let eventSource: DebuggerEventSource;
 
 const fakeReg = [
   { name: 'RAX', value: 0x34 },
@@ -80,6 +82,10 @@ async function CheckDebugging() {
     process.id = data[0].id;
     process.attachTime = data[0].attachTime;
     process.handle = data[0].handle;
+    eventSource = new DebuggerEventSource('/api/debugger/' + process.id + '/event');
+    eventSource.addEventListener('createProcess', e => {
+      console.log(e);
+    });
     {
       const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(process.id);
       const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(process.id);

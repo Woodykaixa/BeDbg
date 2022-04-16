@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using BeDbg.Api;
+using BeDbg.Dto;
 using BeDbg.Models;
 using Iced.Intel;
 
@@ -22,6 +23,13 @@ namespace BeDbg.Debugger;
 /// </summary>
 public abstract class BaseDebugger : DebugEventHandler
 {
+	// Use this CancellationToken to control all threads created by debugger
+	protected readonly CancellationTokenSource CancellationTokenSource = new();
+	public CancellationToken CancellationToken => CancellationTokenSource.Token;
+
+	public Queue<DebuggerEvent<DebuggerEventPayload>> DebuggerEventList = new(64);
+	// public Task? DebuggerEventLoop { get; set; }
+
 	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
 
@@ -37,6 +45,7 @@ public abstract class BaseDebugger : DebugEventHandler
 	public Dictionary<uint, ProcessModel> Processes = new(16);
 	public Dictionary<long, RuntimeModuleModel> Modules = new(32);
 
+
 	public DebuggingProcess TargetProcess => new()
 	{
 		AttachTime = StartTime,
@@ -44,11 +53,27 @@ public abstract class BaseDebugger : DebugEventHandler
 		Id = TargetPid
 	};
 
+	~BaseDebugger()
+	{
+		CancellationTokenSource.Cancel();
+	}
+
 	public override unsafe bool OnException(uint process, uint thread, void* info)
 	{
 		var exceptionRecord = (ExceptionDebugInfo*) info;
-		Console.WriteLine(
-			$"Exception {process} {thread} {exceptionRecord->ExceptionRecord.ExceptionAddress} {exceptionRecord->ExceptionRecord.ExceptionCode}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "exception",
+			Payload = new ExceptionPayload()
+			{
+				Process = process,
+				Thread = thread,
+				ExceptionAddress = exceptionRecord->ExceptionRecord.ExceptionAddress.ToInt64(),
+				ExceptionCode = exceptionRecord->ExceptionRecord.ExceptionCode,
+				ExceptionFlag = exceptionRecord->ExceptionRecord.ExceptionFlags,
+				FirstChance = exceptionRecord->dwFirstChance
+			}
+		});
 		return true;
 	}
 
@@ -57,7 +82,17 @@ public abstract class BaseDebugger : DebugEventHandler
 		var threadInfo = (CreateThreadDebugInfo*) info;
 		Processes[process].Threads[thread] = new ThreadModel(thread, threadInfo->hThread, threadInfo->lpStartAddress,
 			threadInfo->lpThreadLocalBase);
-		Console.WriteLine($"CreateThread {process} {thread}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "createThread",
+			Payload = new CreateThreadPayload
+			{
+				Process = process,
+				Thread = thread,
+				StartAddress = threadInfo->lpStartAddress.ToInt64(),
+				ThreadLocalBase = threadInfo->lpThreadLocalBase.ToInt64()
+			}
+		});
 		return true;
 	}
 
@@ -89,7 +124,18 @@ public abstract class BaseDebugger : DebugEventHandler
 		Processes[process] = currentProcess;
 		Modules[processInfo->lpBaseOfImage.ToInt64()] = module;
 
-		Console.WriteLine($"CreateProcess {process} {thread}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "createProcess",
+			Payload = new CreateProcessPayload
+			{
+				Process = process,
+				Thread = thread,
+				BaseOfImage = processInfo->lpBaseOfImage.ToInt64(),
+				ThreadLocalBase = processInfo->lpThreadLocalBase.ToInt64(),
+				StartAddress = processInfo->lpStartAddress.ToInt64()
+			}
+		});
 		return true;
 	}
 
@@ -97,19 +143,37 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var exitCode = ((ExitThreadDebugInfo*) info)->dwExitCode;
 		Processes[process].Threads.Remove(thread);
-		Console.WriteLine($"ExitThread {process} {thread} {exitCode}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "exitThread",
+			Payload = new ExitThreadPayload
+			{
+				Process = process,
+				Thread = thread,
+				ExitCode = exitCode
+			}
+		});
 		return true;
 	}
 
 	public override unsafe bool OnExitProcess(uint process, uint thread, void* info)
 	{
-		var exitCode = ((ExitThreadDebugInfo*) info)->dwExitCode;
+		var exitCode = ((ExitProcessDebugInfo*) info)->dwExitCode;
 		Processes.Remove(process);
-		Console.WriteLine($"ExitProcess {process} {thread} {exitCode}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "exitProcess",
+			Payload = new ExitProcessPayload
+			{
+				Process = process,
+				Thread = thread,
+				ExitCode = exitCode
+			}
+		});
+
 		if (Processes.Count == 0)
 		{
 			DoDebugLoop = false;
-			Console.WriteLine("End Debug Loop");
 		}
 
 		return true;
@@ -126,6 +190,16 @@ public abstract class BaseDebugger : DebugEventHandler
 		};
 		module.LoadModuleName(Processes[process]);
 		Modules[dll->lpBaseOfDll.ToInt64()] = module;
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "loadDll",
+			Payload = new LoadDllPayload
+			{
+				Process = process,
+				Thread = thread,
+				BaseOfDll = dll->lpBaseOfDll.ToInt64()
+			}
+		});
 		return true;
 	}
 
@@ -133,11 +207,31 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var unload = (UnloadDllDebugInfo*) info;
 		Modules.Remove(unload->lpBaseOfDll.ToInt64());
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "unloadDll",
+			Payload = new UnloadDllPayload
+			{
+				Process = process,
+				Thread = thread,
+				BaseOfDll = unload->lpBaseOfDll.ToInt64()
+			}
+		});
 		return true;
 	}
 
 	public override unsafe bool OnOutputDebugString(uint process, uint thread, void* info)
 	{
+		// TODO: handle OutputDebugString Event
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "unloadDll",
+			Payload = new OutputDebugStringPayload
+			{
+				Process = process,
+				Thread = thread,
+			}
+		});
 		return true;
 	}
 
@@ -146,6 +240,17 @@ public abstract class BaseDebugger : DebugEventHandler
 		var rip = (RipInfo*) info;
 		Console.Error.WriteLine(
 			$"Rip Error: Process {process}, Thread {thread}, Code {rip->dwError}, Type {rip->dwType}");
+		DebuggerEventList.Enqueue(new DebuggerEvent<DebuggerEventPayload>
+		{
+			Event = "rip",
+			Payload = new RipPayload
+			{
+				Process = process,
+				Thread = thread,
+				Error = rip->dwError,
+				Type = rip->dwType
+			}
+		});
 		return false;
 	}
 

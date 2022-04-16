@@ -29,15 +29,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles CREATE_THREAD_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -46,15 +40,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles CREATE_PROCESS_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -63,15 +51,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles EXIT_THREAD_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -80,15 +62,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles EXIT_PROCESS_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -97,15 +73,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles LOAD_DLL_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -114,15 +84,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles UNLOAD_DLL_DEBUG_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -131,15 +95,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles OUTPUT_DEBUG_STRING_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
@@ -148,15 +106,9 @@ public abstract class DebugEventHandler
 	/// <summary>
 	/// Handles RIP_EVENT
 	/// </summary>
-	/// <param name="process">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="thread">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
-	/// <param name="info">
-	/// <inheritdoc cref="OnException"/>
-	/// </param>
+	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
+	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
+	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
