@@ -196,7 +196,7 @@ effect(async () => {
               <div class="base">装载地址</div>
             </div>
             <code v-for="m in process.modules" class="memory-layout">
-              <div class="name">{{ m.name }}</div>
+              <div class="name" :title="m.name">{{ m.name.slice(m.name.lastIndexOf('\\') + 1) }}</div>
               <div class="entry">{{ formatNumberHex(m.entry) }}</div>
               <div class="size">{{ formatNumberHex(m.size) }}</div>
               <div class="base">{{ formatNumberHex(m.base) }}</div>
