@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 using BeDbg.Debugger;
 
 namespace BeDbg.Api
@@ -34,5 +35,18 @@ namespace BeDbg.Api
 
 		[DllImport(InteropConfig.Kernel, EntryPoint = "ResumeThread")]
 		public static extern uint ResumeThread(IntPtr thread);
+
+		/// <summary>
+		/// see <a href="https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew"></a>
+		/// </summary>
+		/// <param name="handle"></param>
+		/// <param name="filePath"></param>
+		/// <param name="size"></param>
+		/// <param name="flags"></param>
+		/// <returns></returns>
+		[DllImport(InteropConfig.Kernel, EntryPoint = "GetFinalPathNameByHandleW", CharSet = CharSet.Unicode)]
+		public static extern bool GetFinalPathNameByHandle(IntPtr handle,
+			[Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder filePath, uint size,
+			uint flags);
 	}
 }

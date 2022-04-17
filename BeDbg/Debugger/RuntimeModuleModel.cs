@@ -24,36 +24,15 @@ public class RuntimeModuleModel
 		ImageFile = imageFile;
 		ImageNamePtr = imageNamePtr;
 		ImageNameEncodingUnicode = unicodeFlag != 0;
-	}
 
-	public void LoadModuleName(ProcessModel process)
-	{
-		if (ImageNamePtr == IntPtr.Zero)
+		var sb = new StringBuilder(256);
+		var result = Kernel.GetFinalPathNameByHandle(ImageFile, sb, 256, 0x0);
+		if (result)
 		{
-			return;
+			ImageName = sb.ToString().Trim('\n', '\t', ' ');
 		}
-
-		//
-		var buffer = process.ReadMemory(ImageNamePtr, 260);
-		var sb = new StringBuilder(260);
-		var i = 0;
-		while (i < buffer.Length)
-		{
-			var ch = (char) buffer[i];
-			if (ch == '\0')
-			{
-				break;
-			}
-
-			sb.Append(ch);
-			i++;
-		}
-
-
-		ImageName = sb.ToString();
-		Console.WriteLine($"Format name of {ImageBase.ToInt64()}: {ImageName}");
 	}
-
+	
 	~RuntimeModuleModel()
 	{
 		Kernel.CloseHandle(ImageFile);
