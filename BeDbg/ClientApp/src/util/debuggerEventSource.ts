@@ -7,19 +7,6 @@ export class DebuggerEventSource {
   #eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
   #eventSource: EventSource;
   constructor(url: string) {
-    this.#eventListeners = {
-      exception: [],
-      createThread: [],
-      createProcess: [],
-      exitThread: [],
-      exitProcess: [],
-      loadDll: [],
-      unloadDll: [],
-      outputDebugString: [],
-      rip: [],
-      exitProgram: [],
-    };
-
     this.#eventSource = new EventSource(url);
 
     this.#eventSource.onopen = () => {
@@ -29,7 +16,9 @@ export class DebuggerEventSource {
       console.log('DebuggerEventSource error:', event);
     };
 
+    this.#eventListeners = {} as any; // We intentionally use any here to avoid type errors. Event listener lists are initialized below.
     DebuggerEventTypes.forEach(type => {
+      this.#eventListeners[type] = [];
       this.#eventSource.addEventListener(type, event => {
         const payload = JSON.parse(event.data);
         this.#eventListeners[type].forEach(listener => listener(payload));

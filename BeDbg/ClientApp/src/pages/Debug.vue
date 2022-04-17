@@ -77,7 +77,7 @@ async function InitializeDebugger() {
 
   eventSource.addEventListener('exitProgram', stopDebug);
 
-  eventSource.addEventListener('exception', async exceptionData => {
+  eventSource.addEventListener('programReady', async () => {
     const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(process.id);
     const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(process.id);
 
@@ -118,6 +118,10 @@ async function InitializeDebugger() {
         text: i.text,
       }));
     }
+  });
+
+  eventSource.addEventListener('exception', exception => {
+    console.log(exception);
   });
 }
 

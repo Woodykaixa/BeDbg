@@ -28,7 +28,8 @@ public abstract class BaseDebugger : DebugEventHandler
 	public CancellationToken CancellationToken => CancellationTokenSource.Token;
 
 	public Queue<DebuggerEvent> DebuggerEventList = new(64);
-	// public Task? DebuggerEventLoop { get; set; }
+
+	private bool _firstException = true; // When debugger handles the first exception, it sends a "programReady" event
 
 	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
@@ -61,10 +62,17 @@ public abstract class BaseDebugger : DebugEventHandler
 	public override unsafe bool OnException(uint process, uint thread, void* info)
 	{
 		var exceptionRecord = (ExceptionDebugInfo*) info;
+		if (_firstException)
+		{
+			DebuggerEventList.Enqueue(new DebuggerEvent
+			{
+				Event = "programReady"
+			});
+		}
 		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "exception",
-			Payload = new ExceptionPayload()
+			Payload = new ExceptionPayload
 			{
 				Process = process,
 				Thread = thread,
@@ -118,8 +126,6 @@ public abstract class BaseDebugger : DebugEventHandler
 			DebugInfoOffset = processInfo->dwDebugInfoFileOffset,
 			DebugInfoSize = processInfo->nDebugInfoSize,
 		};
-
-		module.LoadModuleName(currentProcess);
 
 		Processes[process] = currentProcess;
 		Modules[processInfo->lpBaseOfImage.ToInt64()] = module;
@@ -194,7 +200,6 @@ public abstract class BaseDebugger : DebugEventHandler
 			DebugInfoSize = dll->fUnicode,
 			ImageBase = dll->lpBaseOfDll
 		};
-		module.LoadModuleName(Processes[process]);
 		Modules[dll->lpBaseOfDll.ToInt64()] = module;
 		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
