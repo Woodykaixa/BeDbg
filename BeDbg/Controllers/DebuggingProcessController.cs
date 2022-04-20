@@ -81,8 +81,8 @@ namespace BeDbg.Controllers
 				info.Type)));
 		}
 
-		[HttpGet("disasm")]
-		public ActionResult Disassemble([FromQuery] int pid)
+		[HttpGet("disasm/{pid:int}")]
+		public ActionResult Disassemble(int pid, [FromQuery] ulong address)
 		{
 			var debugger = _debugService.FindOneByPid(pid);
 			if (debugger == null)
@@ -90,7 +90,8 @@ namespace BeDbg.Controllers
 				return NotFound();
 			}
 
-			return Ok(debugger.Disassemble(0x00007FF79E3C1000, 0x3000));
+
+			return Ok(debugger.Disassemble(address, 0x3000));
 		}
 	}
 }

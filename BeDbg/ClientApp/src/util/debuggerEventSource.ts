@@ -6,6 +6,7 @@ type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: Debugger
 export class DebuggerEventSource {
   #eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
   #eventSource: EventSource;
+
   constructor(url: string) {
     this.#eventSource = new EventSource(url);
 
@@ -30,10 +31,22 @@ export class DebuggerEventSource {
     this.#eventListeners[type].push(listener);
   }
 
+  addEventListenerOnce<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
+    const onceListener = (...args: DebuggerEvents[EventType]) => {
+      this.removeEventListener(type, onceListener);
+      listener(...args);
+    };
+    this.addEventListener(type, onceListener);
+  }
+
   removeEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
     const index = this.#eventListeners[type].indexOf(listener);
     if (index >= 0) {
       this.#eventListeners[type].splice(index, 1);
     }
+  }
+
+  close() {
+    this.#eventSource.close();
   }
 }

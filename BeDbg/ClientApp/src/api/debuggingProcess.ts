@@ -61,7 +61,9 @@ export const DebuggingProcess = {
     return apiRequestWrapper<ProcessMemoryPage[]>(fetch('/api/debuggingProcess/pages?pid=' + pid));
   },
 
-  async disassemble(pid: number) {
-    return apiRequestWrapper<{ ip: number; text: string }[]>(fetch('/api/debuggingProcess/disasm?pid=' + pid));
+  async disassemble(pid: number, address: number) {
+    return apiRequestWrapper<{ ip: number; text: string }[]>(
+      fetch('/api/debuggingProcess/disasm/' + pid + '?address=' + address)
+    );
   },
 } as const;

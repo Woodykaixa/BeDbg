@@ -54,6 +54,7 @@ export const DebuggerEventTypes = [
   'rip',
   'exitProgram',
   'programReady',
+  'notFound',
 ] as const;
 
 export type DebuggerEvents = {
@@ -68,4 +69,5 @@ export type DebuggerEvents = {
   rip: [RipPayload];
   exitProgram: [];
   programReady: [];
+  notFound: [];
 };

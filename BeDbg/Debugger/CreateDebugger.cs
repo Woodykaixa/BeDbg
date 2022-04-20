@@ -32,15 +32,21 @@ public class CreateDebugger : BaseDebugger
 
 			TargetPid = pid;
 			TargetHandle = handle;
+			 
 			Kernel.DebugActiveProcess(pid);
 			StartDebugLoop();
 			Kernel.DebugActiveProcessStop(pid);
 		});
 	}
 
+
 	~CreateDebugger()
 	{
-		Kernel.TerminateProcess(new IntPtr(TargetHandle), 0);
+		if (!Kernel.TerminateProcess(new IntPtr(TargetHandle), 0))
+		{
+			throw new Exception("Cannot terminate process");
+		}
+
 		Kernel.CloseHandle(new IntPtr(TargetHandle));
 	}
 }

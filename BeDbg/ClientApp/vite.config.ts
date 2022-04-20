@@ -58,7 +58,6 @@ export default defineConfig({
   plugins: [vue()],
   esbuild: {
     jsxFactory: 'h',
-    jsxInject: "import {h} from 'vue';",
   },
   server: {
     port: 44489,

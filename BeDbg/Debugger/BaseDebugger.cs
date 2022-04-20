@@ -59,16 +59,34 @@ public abstract class BaseDebugger : DebugEventHandler
 		CancellationTokenSource.Cancel();
 	}
 
+	public void OnProgramReady()
+	{
+		MemPages.Clear();
+		MemPages.AddRange(BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle)));
+		for (var i = 0; i < MemPages.Count; i++)
+		{
+			var memPage = MemPages[i];
+			if (memPage.BaseAddress == 0x7FFE0000)
+			{
+				memPage.Info = "KUSER_SHARED_DATA";
+				continue;
+			}
+
+		}
+	}
+
 	public override unsafe bool OnException(uint process, uint thread, void* info)
 	{
 		var exceptionRecord = (ExceptionDebugInfo*) info;
 		if (_firstException)
 		{
+			OnProgramReady();
 			DebuggerEventList.Enqueue(new DebuggerEvent
 			{
 				Event = "programReady"
 			});
 		}
+
 		DebuggerEventList.Enqueue(new DebuggerEvent
 		{
 			Event = "exception",
@@ -303,7 +321,7 @@ public abstract class BaseDebugger : DebugEventHandler
 			}
 		};
 		var output = new StringOutput();
-		return instructions.Where(instr => instr.IsInvalid).Select(instr =>
+		return instructions.Where(instr => !instr.IsInvalid).Select(instr =>
 		{
 			formatter.Format(instr, output);
 			return new InstructionModel()

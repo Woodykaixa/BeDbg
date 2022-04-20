@@ -34,6 +34,7 @@ public class DebugService
 	{
 		var debugger = new CreateDebugger(file, command, environment, workingDir);
 		_debuggers.Add(debugger);
+
 		return debugger.TargetProcess;
 	}
 
