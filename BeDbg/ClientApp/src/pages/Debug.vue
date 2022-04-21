@@ -21,13 +21,32 @@ import { DebuggerEventSource } from '@/util/debuggerEventSource';
 import { DataFormatter } from '@/util/formatter';
 import DebugViewSider from '@/components/DebugViewSider.vue';
 import { provideDebuggerEventSource } from '@/hooks/useDebuggerEvent';
-
+import { provideRegisters } from '@/hooks/useRegisters';
+import { DefaultEmptyRegisters } from '@/dto/thread';
 const debuggerEvent = new DebuggerEventSource('/api/debugger/0/event');
 debuggerEvent.addEventListener('notFound', () => {
   debuggerEvent.close(); // If debugger not present, close the event source
 });
 
+const process = reactive({
+  id: 0,
+  handle: 0,
+  threads: [0] as number[],
+  attachTime: new Date(),
+  modules: [] as ProcessModule[],
+  pages: [] as (ProcessMemoryPage & { data: string })[],
+});
+
 provideDebuggerEventSource(debuggerEvent);
+
+// const [, updateRegisters] = provideRegisters(DefaultEmptyRegisters, async () => {
+//   const { ok, data } = await Api.DebuggingProcess.getRegisters(process.id, process.threads[0]);
+//   if (ok) {
+//     return data;
+//   }
+//   console.error('fetch register failed', data);
+//   return DefaultEmptyRegisters;
+// });
 
 type Instruction = {
   address: number;
@@ -40,23 +59,21 @@ const debugData = reactive({
 
 const router = useRouter();
 const notification = useNotification();
-const process = reactive({
-  id: 0,
-  handle: 0,
-  attachTime: new Date(),
-  modules: [] as ProcessModule[],
-  pages: [] as (ProcessMemoryPage & { data: string })[],
-});
 
 async function InitializeDebugger() {
   debuggerEvent.addEventListener('createProcess', e => {
-    console.log(e);
+    process.threads[0] = e.thread;
+  });
+
+  debuggerEvent.addEventListener('createThread', e => {
+    process.threads.push(e.thread);
   });
 
   debuggerEvent.addEventListener('exitProgram', stopDebug);
 
   debuggerEvent.addEventListener('programReady', async () => {
-    debuggerEvent.addEventListener('exception', async exception => {
+    // updateRegisters();
+    debuggerEvent.addEventListenerOnce('exception', async exception => {
       console.log(exception);
       const { ok, data } = await Api.DebuggingProcess.disassemble(process.id, exception.exceptionAddress + 1);
       if (ok) {
@@ -65,6 +82,10 @@ async function InitializeDebugger() {
           text: i.text,
         }));
       }
+    });
+
+    debuggerEvent.addEventListener('exception', exception => {
+      console.error('exception', exception);
     });
   });
 }
@@ -130,7 +151,11 @@ effect(async () => {
       bordered
       :native-scrollbar="false"
     >
-      <debug-view-sider :pid="process.id" v-if="process.id !== 0" />
+      <debug-view-sider
+        :pid="process.id"
+        :threads="process.threads"
+        v-if="process.id !== 0 && process.threads[0] !== 0"
+      />
     </n-layout-sider>
     <n-layout-content>
       <div class="debug-container">

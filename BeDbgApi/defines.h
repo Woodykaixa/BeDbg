@@ -16,11 +16,13 @@ namespace BeDbgApi::Env
 {
 #ifndef _WIN64
     constexpr Platform PLATFORM = Platform::X86;
+#define BEDBG_ENV_X86
 #else
     constexpr Platform PLATFORM = Platform::AMD64;
 #endif
 
 #ifndef NDEBUG
+#define BEDBG_ENV_DEBUG
     constexpr Configuration CONFIGURATION = Configuration::DEBUG;
 #else
 	constexpr Configuration CONFIGURATION = Configuration::RELEASE;
@@ -38,4 +40,8 @@ namespace BeDbgApi::Type
     using sys_handle_t = handle_t<void>;
 
     static_assert(sizeof(sys_handle_t) == (Env::IS_WIN32 ? 4 : 8), "pointer size error");
+
+    using uint128_t = char[16];
+
+    static_assert(sizeof(uint128_t) == (128 / 8), "uint128_t should be a 128-bit type, check you pack settings");
 }

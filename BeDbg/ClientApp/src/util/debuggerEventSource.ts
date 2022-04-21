@@ -3,6 +3,9 @@ import { DebuggerEvents, DebuggerEventTypes } from '@/dto/debuggerEvent';
 type DebuggerEvent = typeof DebuggerEventTypes[number];
 type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: DebuggerEvents[EventType]) => void;
 
+/**
+ * DebuggerEventSource is a class that allows to subscribe to debugger events from server.
+ */
 export class DebuggerEventSource {
   #eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
   #eventSource: EventSource;
@@ -27,10 +30,20 @@ export class DebuggerEventSource {
     });
   }
 
+  /**
+   * Listen to a specific event.
+   * @param type Event type.
+   * @param listener Event listener.
+   */
   addEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
     this.#eventListeners[type].push(listener);
   }
 
+  /**
+   * Listen to a specific event once.
+   * @param type Event type.
+   * @param listener Event listener.
+   */
   addEventListenerOnce<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
     const onceListener = (...args: DebuggerEvents[EventType]) => {
       this.removeEventListener(type, onceListener);
@@ -39,6 +52,11 @@ export class DebuggerEventSource {
     this.addEventListener(type, onceListener);
   }
 
+  /**
+   * Remove an event listener.
+   * @param type Event type.
+   * @param listener Event listener.
+   */
   removeEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
     const index = this.#eventListeners[type].indexOf(listener);
     if (index >= 0) {
@@ -46,6 +64,9 @@ export class DebuggerEventSource {
     }
   }
 
+  /**
+   * Close the event source.
+   */
   close() {
     this.#eventSource.close();
   }

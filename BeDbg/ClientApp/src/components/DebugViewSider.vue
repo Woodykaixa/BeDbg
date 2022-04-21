@@ -20,10 +20,16 @@ import { useDebuggerEventSource } from '@/hooks/useDebuggerEvent';
 import type { ProcessModule, ProcessMemoryPage } from '@/dto/process';
 import { Api } from '@/api';
 import type { ErrorResponse } from '@/dto/error';
+import RegisterSiderView from './RegisterSiderView.vue';
+import { DefaultEmptyRegisters } from '@/dto/thread';
 
 const props = defineProps({
   pid: {
     type: Number,
+    required: true,
+  },
+  threads: {
+    type: Array as PropType<number[]>,
     required: true,
   },
 });
@@ -34,6 +40,19 @@ const process = reactive({
   pages: [] as (ProcessMemoryPage & { data: string })[],
 });
 
+const debugData = reactive({
+  registers: DefaultEmptyRegisters,
+});
+
+onMounted(async () => {
+  const { ok, data } = await Api.DebuggingProcess.getRegisters(props.pid, props.threads[0]);
+  if (ok) {
+    debugData.registers = data;
+    console.log('registers', debugData.registers);
+  } else {
+    console.error('fetch register failed', data);
+  }
+});
 const notification = useNotification();
 const router = useRouter();
 
@@ -72,26 +91,6 @@ debuggerEvent.addEventListener('programReady', async () => {
       };
     });
 });
-
-const fakeReg = [
-  { name: 'RAX', value: 0x34 },
-  { name: 'RBX', value: 0 },
-  { name: 'RCX', value: 0x00000096892ffa40 },
-  { name: 'RDX', value: 0xa },
-  { name: 'RBP', value: 0 },
-  { name: 'RSP', value: 0x00000096892ffa18 },
-  { name: 'RSI', value: 0 },
-  { name: 'RDI', value: 0 },
-  { name: 'R8', value: 0 },
-  { name: 'R9', value: 0 },
-  { name: 'R10', value: 0 },
-  { name: 'R11', value: 0x0000000000000246 },
-  { name: 'R12', value: 0 },
-  { name: 'R13', value: 0 },
-  { name: 'R14', value: 0 },
-  { name: 'R15', value: 0 },
-  { name: 'RIP', value: 0x00007ffeba6ed3f4 },
-];
 </script>
 
 <template>
@@ -111,7 +110,7 @@ const fakeReg = [
           <div class="base">{{ DataFormatter.formatNumberHex(m.base) }}</div>
         </code>
       </n-collapse-item>
-      <n-collapse-item title="进程内存">
+      <!-- <n-collapse-item title="进程内存">
         <div class="memory-page-layout">
           <div class="address">地址</div>
           <div class="address">大小</div>
@@ -132,14 +131,9 @@ const fakeReg = [
             {{ DataFormatter.formatProtectionFlag(m.initialFlags) }}
           </div>
         </code>
-      </n-collapse-item>
+      </n-collapse-item> -->
       <n-collapse-item title="寄存器">
-        <div class="register-box" :style="{ display: 'flex', 'flex-wrap': 'wrap' }">
-          <div v-for="reg in fakeReg" class="register">
-            <code class="name">{{ reg.name }}</code>
-            <code class="value">{{ DataFormatter.formatNumberHex(reg.value) }}</code>
-          </div>
-        </div>
+        <register-sider-view :registers="debugData.registers" />
       </n-collapse-item>
       <n-collapse-item title="其他功能">
         <n-button> 结束调试 </n-button>

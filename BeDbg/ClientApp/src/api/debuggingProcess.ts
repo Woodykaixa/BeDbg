@@ -1,5 +1,6 @@
 import { ErrorResponse } from '@/dto/error';
 import { DebuggingProcess as DebuggingProcessResp, ProcessMemoryPage, ProcessModule } from '@/dto/process';
+import { Registers } from '@/dto/thread';
 import { apiRequestWrapper } from '@/util/request';
 
 export const DebuggingProcess = {
@@ -65,5 +66,9 @@ export const DebuggingProcess = {
     return apiRequestWrapper<{ ip: number; text: string }[]>(
       fetch('/api/debuggingProcess/disasm/' + pid + '?address=' + address)
     );
+  },
+
+  async getRegisters(pid: number, tid: number) {
+    return apiRequestWrapper<Registers>(fetch('/api/debuggingProcess/regs/' + pid + '?tid=' + tid));
   },
 } as const;

@@ -79,4 +79,91 @@ public class BeDbg64
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "CopyProcessHandle")]
 	public static extern IntPtr CopyProcessHandle(IntPtr handle);
+
+	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	public struct XmmRegister
+	{
+		public ulong Low { get; set; }
+		public ulong High { get; set; }
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	public struct FpuRegister
+	{
+		public double Low { get; set; }
+		public ulong High { get; set; }
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	public struct Registers
+	{
+		public ulong Rip { get; set; }
+		public ulong Rax { get; set; }
+		public ulong Rcx { get; set; }
+		public ulong Rdx { get; set; }
+		public ulong Rbx { get; set; }
+		public ulong Rsp { get; set; }
+		public ulong Rbp { get; set; }
+		public ulong Rsi { get; set; }
+		public ulong Rdi { get; set; }
+		public ulong R8 { get; set; }
+		public ulong R9 { get; set; }
+		public ulong R10 { get; set; }
+		public ulong R11 { get; set; }
+		public ulong R12 { get; set; }
+		public ulong R13 { get; set; }
+		public ulong R14 { get; set; }
+		public ulong R15 { get; set; }
+
+		public uint MxCsr { get; set; }
+
+		public ushort SegCs { get; set; }
+		public ushort SegDs { get; set; }
+		public ushort SegEs { get; set; }
+		public ushort SegFs { get; set; }
+		public ushort SegGs { get; set; }
+		public ushort SegSs { get; set; }
+		public uint EFlags { get; set; }
+
+		public ulong Dr0 { get; set; }
+		public ulong Dr1 { get; set; }
+		public ulong Dr2 { get; set; }
+		public ulong Dr3 { get; set; }
+		public ulong Dr6 { get; set; }
+		public ulong Dr7 { get; set; }
+
+		public byte FpuTagWord { get; set; }
+		public ushort FpuStatusWord { get; set; }
+		public ushort FpuControlWord { get; set; }
+
+		public FpuRegister St0 { get; set; }
+		public FpuRegister St1 { get; set; }
+		public FpuRegister St2 { get; set; }
+		public FpuRegister St3 { get; set; }
+		public FpuRegister St4 { get; set; }
+		public FpuRegister St5 { get; set; }
+		public FpuRegister St6 { get; set; }
+		public FpuRegister St7 { get; set; }
+
+		public XmmRegister Xmm0 { get; set; }
+		public XmmRegister Xmm1 { get; set; }
+		public XmmRegister Xmm2 { get; set; }
+		public XmmRegister Xmm3 { get; set; }
+		public XmmRegister Xmm4 { get; set; }
+		public XmmRegister Xmm5 { get; set; }
+		public XmmRegister Xmm6 { get; set; }
+		public XmmRegister Xmm7 { get; set; }
+		public XmmRegister Xmm8 { get; set; }
+		public XmmRegister Xmm9 { get; set; }
+		public XmmRegister Xmm10 { get; set; }
+		public XmmRegister Xmm11 { get; set; }
+		public XmmRegister Xmm12 { get; set; }
+		public XmmRegister Xmm13 { get; set; }
+		public XmmRegister Xmm14 { get; set; }
+		public XmmRegister Xmm15 { get; set; }
+	}
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "GetThreadRegisters")]
+	public static extern unsafe void GetThreadRegisters(IntPtr thread,
+		Registers* reg);
 }

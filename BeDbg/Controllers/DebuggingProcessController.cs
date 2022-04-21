@@ -93,5 +93,18 @@ namespace BeDbg.Controllers
 
 			return Ok(debugger.Disassemble(address, 0x3000));
 		}
+
+		[HttpGet("regs/{pid:int}")]
+		public ActionResult GetRegisters(int pid, [FromQuery] ulong tid)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+
+			return Ok(debugger.GetRegisters(tid));
+		}
 	}
 }

@@ -54,6 +54,18 @@ public abstract class BaseDebugger : DebugEventHandler
 		Id = TargetPid
 	};
 
+	public BeDbg64.Registers GetRegisters(ulong thread)
+	{
+		var process = Processes[(uint) TargetPid];
+		var threadHandle = process.Threads[process.MainThread].Handle;
+		unsafe
+		{
+			var registers = stackalloc BeDbg64.Registers[1];
+			BeDbg64.GetThreadRegisters(threadHandle, registers);
+			return *registers;
+		}
+	}
+
 	~BaseDebugger()
 	{
 		CancellationTokenSource.Cancel();
@@ -71,7 +83,6 @@ public abstract class BaseDebugger : DebugEventHandler
 				memPage.Info = "KUSER_SHARED_DATA";
 				continue;
 			}
-
 		}
 	}
 
