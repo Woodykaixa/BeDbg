@@ -58,10 +58,20 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var process = Processes[(uint) TargetPid];
 		var threadHandle = process.Threads[process.MainThread].Handle;
+		if (Kernel.SuspendThread(threadHandle) == uint.MaxValue)
+		{
+			throw new Exception("SuspendThread");
+		}
+
 		unsafe
 		{
 			var registers = stackalloc BeDbg64.Registers[1];
 			BeDbg64.GetThreadRegisters(threadHandle, registers);
+			if (Kernel.ResumeThread(threadHandle) == uint.MaxValue)
+			{
+				throw new Exception("SuspendThread");
+			}
+
 			return *registers;
 		}
 	}

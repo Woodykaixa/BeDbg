@@ -33,6 +33,9 @@ namespace BeDbg.Api
 		[DllImport(InteropConfig.Kernel, EntryPoint = "CreateThread")]
 		public static extern bool CreateThread(string? fake, int stack, ThreadCb cb);
 
+		[DllImport(InteropConfig.Kernel, EntryPoint = "SuspendThread")]
+		public static extern uint SuspendThread(IntPtr thread);
+
 		[DllImport(InteropConfig.Kernel, EntryPoint = "ResumeThread")]
 		public static extern uint ResumeThread(IntPtr thread);
 
