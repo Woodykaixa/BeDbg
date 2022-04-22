@@ -5,8 +5,10 @@ import App from './App.vue';
 import 'vfonts/Lato.css';
 import 'vfonts/FiraCode.css';
 import { createRouter, createWebHistory } from 'vue-router';
+import { createPinia } from 'pinia';
 
 createApp(App)
+  .use(createPinia())
   .use(
     createRouter({
       history: createWebHistory(),

@@ -1,83 +1,73 @@
 <script setup lang="ts">
-import { effect, onMounted, provide, reactive, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  useNotification,
-  NList,
-  NLi,
-  NScrollbar,
-  NCollapse,
-  NCollapseItem,
-  NCode,
-  NLayout,
-  NLayoutSider,
-  NLayoutContent,
-  NButton,
-} from 'naive-ui';
+import { useNotification, NLayout, NLayoutSider, NLayoutContent } from 'naive-ui';
 import { Api } from '@/api';
-import { ProcessModule, ProcessMemoryPage } from '@/dto/process';
-import { ErrorResponse } from '@/dto/error';
 import { DebuggerEventSource } from '@/util/debuggerEventSource';
-import { DataFormatter } from '@/util/formatter';
 import DebugViewSider from '@/components/DebugViewSider.vue';
 import { provideDebuggerEventSource } from '@/hooks/useDebuggerEvent';
-import { provideRegisters } from '@/hooks/useRegisters';
-import { DefaultEmptyRegisters } from '@/dto/thread';
+import { useDebugData, WinProcess, WinThread } from '@/hooks/useDebugData';
+import DebugView from '@/components/DebugView.vue';
+
 const debuggerEvent = new DebuggerEventSource('/api/debugger/0/event');
 debuggerEvent.addEventListener('notFound', () => {
   debuggerEvent.close(); // If debugger not present, close the event source
 });
 
-const process = reactive({
-  id: 0,
-  handle: 0,
-  threads: [0] as number[],
-  attachTime: new Date(),
-  modules: [] as ProcessModule[],
-  pages: [] as (ProcessMemoryPage & { data: string })[],
-});
+const debugData = useDebugData();
+
+const programReady = ref(false);
 
 provideDebuggerEventSource(debuggerEvent);
-
-// const [, updateRegisters] = provideRegisters(DefaultEmptyRegisters, async () => {
-//   const { ok, data } = await Api.DebuggingProcess.getRegisters(process.id, process.threads[0]);
-//   if (ok) {
-//     return data;
-//   }
-//   console.error('fetch register failed', data);
-//   return DefaultEmptyRegisters;
-// });
-
-type Instruction = {
-  address: number;
-  text: string;
-};
-
-const debugData = reactive({
-  instr: [] as Instruction[],
-});
 
 const router = useRouter();
 const notification = useNotification();
 
 async function InitializeDebugger() {
   debuggerEvent.addEventListener('createProcess', e => {
-    process.threads[0] = e.thread;
+    const mainThread: WinThread = {
+      address: e.threadLocalBase,
+      id: e.thread,
+      entry: e.startAddress,
+      instructions: [],
+    };
+
+    const mainProcess: WinProcess = {
+      id: e.process,
+      mainThread,
+      threads: new Map([[mainThread.id, mainThread]]),
+    };
+    debugData.$patch({
+      mainProcess,
+      process: new Map([[e.process, mainProcess]]),
+    });
   });
 
   debuggerEvent.addEventListener('createThread', e => {
-    process.threads.push(e.thread);
+    const thread: WinThread = {
+      address: e.threadLocalBase,
+      id: e.thread,
+      entry: e.startAddress,
+      instructions: [],
+    };
+    // createThread event means it created a new thread on a old process. If both process and thread are created, it will be a createProcess event.
+    // Thus we can use '!.' to skip falsy check
+    debugData.process.get(e.process)!.threads.set(e.thread, thread);
   });
 
   debuggerEvent.addEventListener('exitProgram', stopDebug);
 
   debuggerEvent.addEventListener('programReady', async () => {
     // updateRegisters();
+    programReady.value = true;
     debuggerEvent.addEventListenerOnce('exception', async exception => {
       console.log(exception);
-      const { ok, data } = await Api.DebuggingProcess.disassemble(process.id, exception.exceptionAddress + 1);
+      const { ok, data } = await Api.DebuggingProcess.disassemble(
+        debugData.mainProcess.id,
+        exception.exceptionAddress + 1
+      );
       if (ok) {
-        debugData.instr = data.map(i => ({
+        debugData.mainProcess.mainThread.instructions = data.map(i => ({
           address: i.ip,
           text: i.text,
         }));
@@ -101,9 +91,6 @@ async function CheckDebugging() {
       router.push('/');
       return;
     }
-    process.id = data[0].id;
-    process.attachTime = data[0].attachTime;
-    process.handle = data[0].handle;
   } else {
     notification.error({
       title: '无法获取调试中进程',
@@ -122,7 +109,7 @@ onMounted(() => {
 
 const stopDebug = async () => {
   sessionStorage.removeItem('debugPid');
-  const { ok, data } = await Api.DebuggingProcess.detachProcess(process.id);
+  const { ok, data } = await Api.DebuggingProcess.detachProcess(debugData.mainProcess.id);
   if (ok) {
     router.push('/');
   } else {
@@ -133,11 +120,6 @@ const stopDebug = async () => {
     });
   }
 };
-
-effect(async () => {
-  const resp = await Api.readProcessMemory({ pid: process.id, address: 0, size: 0 })!;
-  console.log(resp, typeof resp);
-});
 </script>
 
 <template>
@@ -151,123 +133,10 @@ effect(async () => {
       bordered
       :native-scrollbar="false"
     >
-      <debug-view-sider
-        :pid="process.id"
-        :threads="process.threads"
-        v-if="process.id !== 0 && process.threads[0] !== 0"
-      />
+      <debug-view-sider v-if="programReady" />
     </n-layout-sider>
     <n-layout-content>
-      <div class="debug-container">
-        <n-list class="dis-asm-box" bordered>
-          <template #header> 反汇编 </template>
-          <n-scrollbar>
-            <n-li v-for="i in debugData.instr" class="dis-asm-instr">
-              <div class="address">{{ DataFormatter.formatNumberHex(i.address) }}</div>
-              <n-code :code="i.text" language="x86asm" />
-            </n-li>
-          </n-scrollbar>
-        </n-list>
-      </div>
+      <debug-view v-if="programReady" />
     </n-layout-content>
   </n-layout>
 </template>
-
-<style scoped>
-.debug-page {
-  box-sizing: border-box;
-  width: 100vw;
-  height: 100vh;
-}
-
-.menu {
-  box-sizing: border-box;
-  height: 8vh;
-  width: 100vw;
-  display: flex;
-  padding: 12px;
-}
-
-.menu button {
-  width: 10%;
-}
-.debug-container {
-  box-sizing: border-box;
-  width: 80vw;
-  height: 100vh;
-  display: flex;
-  padding: 16px;
-  margin: auto;
-}
-
-.dis-asm-box {
-  width: 70%;
-  display: flex;
-  flex-direction: column;
-  font-family: Consolas;
-  margin-block-start: 0;
-  margin-block-end: 0;
-}
-
-.dis-asm-instr {
-  width: 100%;
-  display: flex;
-}
-
-.dis-asm-instr .address {
-  width: 70%;
-  min-width: 150px;
-  max-width: 200px;
-  text-align: center;
-}
-
-.memory-layout {
-  display: flex;
-  width: 100%;
-}
-
-.memory-layout .entry,
-.memory-layout .base,
-.memory-layout .size,
-.memory-layout .name {
-  width: 25%;
-}
-
-.memory-page-layout {
-  display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-}
-
-.memory-page-layout .address {
-  width: 20%;
-}
-
-.memory-page-layout .flags {
-  width: 15%;
-}
-
-.register-box {
-  margin-left: 4px;
-}
-
-.register-box .register {
-  box-sizing: border-box;
-  padding: 4px;
-  display: flex;
-}
-
-.register-box .register .name {
-  width: 30px;
-  margin: 0 4px;
-}
-
-.register-box .register .value {
-}
-
-.data-panel {
-  width: 30%;
-  display: flex;
-  flex-direction: column;
-}
-</style>

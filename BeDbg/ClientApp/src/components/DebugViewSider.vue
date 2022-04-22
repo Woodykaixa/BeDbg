@@ -1,54 +1,31 @@
 <script setup lang="ts">
-import { effect, onMounted, reactive, ref, PropType, Component, h, inject } from 'vue';
+import { effect, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import {
-  useNotification,
-  NList,
-  NLi,
-  NScrollbar,
-  NCollapse,
-  NCollapseItem,
-  NCode,
-  NLayout,
-  NLayoutSider,
-  NLayoutContent,
-  NButton,
-} from 'naive-ui';
+import { useNotification, NScrollbar, NCollapse, NCollapseItem, NButton } from 'naive-ui';
 import { DataFormatter } from '@/util/formatter';
-import { DebuggerEventSource } from '@/util/debuggerEventSource';
-import { useDebuggerEventSource } from '@/hooks/useDebuggerEvent';
 import type { ProcessModule, ProcessMemoryPage } from '@/dto/process';
 import { Api } from '@/api';
 import type { ErrorResponse } from '@/dto/error';
 import RegisterSiderView from './RegisterSiderView.vue';
 import { DefaultEmptyRegisters } from '@/dto/thread';
+import { useDebugData } from '@/hooks/useDebugData';
 
-const props = defineProps({
-  pid: {
-    type: Number,
-    required: true,
-  },
-  threads: {
-    type: Array as PropType<number[]>,
-    required: true,
-  },
-});
+const debugData = useDebugData();
 
-const debuggerEvent = useDebuggerEventSource();
 const process = reactive({
   modules: [] as ProcessModule[],
   pages: [] as (ProcessMemoryPage & { data: string })[],
 });
 
-const debugData = reactive({
-  registers: DefaultEmptyRegisters,
-});
+const registers = ref(DefaultEmptyRegisters);
 
 onMounted(async () => {
-  const { ok, data } = await Api.DebuggingProcess.getRegisters(props.pid, props.threads[0]);
+  const { ok, data } = await Api.DebuggingProcess.getRegisters(
+    debugData.mainProcess.id,
+    debugData.mainProcess.mainThread.id
+  );
   if (ok) {
-    debugData.registers = data;
-    console.log('registers', debugData.registers);
+    registers.value = data;
   } else {
     console.error('fetch register failed', data);
   }
@@ -56,9 +33,9 @@ onMounted(async () => {
 const notification = useNotification();
 const router = useRouter();
 
-debuggerEvent.addEventListener('programReady', async () => {
-  const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(props.pid);
-  const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(props.pid);
+effect(async () => {
+  const { data: modules, ok: moduleOk } = await Api.DebuggingProcess.listModules(debugData.mainProcess.id);
+  const { data: pages, ok: pageOk } = await Api.DebuggingProcess.listPages(debugData.mainProcess.id);
 
   if (!moduleOk || !pageOk) {
     const err = (moduleOk ? pages : modules) as ErrorResponse;
@@ -133,7 +110,7 @@ debuggerEvent.addEventListener('programReady', async () => {
         </code>
       </n-collapse-item> -->
       <n-collapse-item title="寄存器">
-        <register-sider-view :registers="debugData.registers" />
+        <register-sider-view :registers="registers" />
       </n-collapse-item>
       <n-collapse-item title="其他功能">
         <n-button> 结束调试 </n-button>
