@@ -84,9 +84,11 @@ public abstract class BaseDebugger : DebugEventHandler
 		}
 	}
 
-	~BaseDebugger()
+	public override void OnRelease()
 	{
 		CancellationTokenSource.Cancel();
+		DoDebugLoop = false;
+		base.OnRelease();
 	}
 
 	public void OnProgramReady()
@@ -103,10 +105,10 @@ public abstract class BaseDebugger : DebugEventHandler
 			}
 		}
 
-		EmitDebuggerEvent((new DebuggerEvent
+		EmitDebuggerEvent(new DebuggerEvent
 		{
 			Event = "programReady"
-		}));
+		});
 	}
 
 	public override unsafe bool OnException(uint process, uint thread, void* info)

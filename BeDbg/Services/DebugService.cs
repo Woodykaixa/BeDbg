@@ -61,7 +61,7 @@ public class DebugService
 		}
 
 		_debuggers.Remove(debugger);
-
+		debugger.Release();
 		return true;
 	}
 }

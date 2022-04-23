@@ -7,10 +7,15 @@ import { DefaultEmptyRegisters } from '@/dto/thread';
 import { ref, onMounted } from 'vue';
 import { Api } from '@/api';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
+import { useRouter } from 'vue-router';
+import { useNotification } from 'naive-ui';
 
 const debugData = useDebugData();
 const loadingStates = useLoadingStates();
 const registers = ref(DefaultEmptyRegisters);
+const router  = useRouter();
+const notification = useNotification();
+
 
 onMounted(async () => {
   const { ok, data } = await Api.DebuggingProcess.getRegisters(

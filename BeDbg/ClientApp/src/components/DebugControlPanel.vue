@@ -8,6 +8,28 @@ import {
   ArrowRightOutlined,
   CloseOutlined,
 } from '@vicons/antd';
+
+import { useDebugData } from '@/hooks/useDebugData';
+import { useRouter } from 'vue-router';
+import { useNotification } from 'naive-ui';
+import { Api } from '@/api';
+
+const debugData = useDebugData();
+const router = useRouter();
+const notification = useNotification();
+
+const stopDebug = async () => {
+  const { ok, data } = await Api.DebuggingProcess.detachProcess(debugData.mainProcess.id);
+  if (ok) {
+    router.push('/');
+  } else {
+    notification.error({
+      title: '退出调试失败',
+      description: data.error,
+      content: data.message,
+    });
+  }
+};
 </script>
 
 <template>
@@ -41,7 +63,7 @@ import {
           </n-icon>
         </template>
       </n-button>
-      <n-button quaternary type="error" title="结束调试">
+      <n-button quaternary type="error" title="结束调试" @click="stopDebug">
         <template #icon>
           <n-icon size="20">
             <close-outlined />

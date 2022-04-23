@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using BeDbg.Api;
+using BeDbg.Util;
 
 namespace BeDbg.Debugger;
 
@@ -15,7 +16,7 @@ namespace BeDbg.Debugger;
 /// see https://docs.microsoft.com/en-us/windows/win32/debug/debugging-events
 /// </para>
 /// </summary>
-public abstract class DebugEventHandler
+public abstract class DebugEventHandler : NeedRelease
 {
 	/// <summary>
 	/// Handles EXCEPTION_DEBUG_EVENT
@@ -138,6 +139,7 @@ public abstract class DebugEventHandler
 	~DebugEventHandler()
 	{
 		DestroyDebugLoopCallbacks(CallbackHandle);
+		Release();
 	}
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "CreateDebugLoopCallbacks")]
@@ -152,6 +154,10 @@ public abstract class DebugEventHandler
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "DebugLoopWaitEvent")]
 	protected static extern bool DebugLoopWaitEvent(IntPtr callbacks);
+
+	public override void OnRelease()
+	{
+	}
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]

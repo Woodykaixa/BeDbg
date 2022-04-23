@@ -23,12 +23,12 @@ public class AttachDebugger : BaseDebugger
 			Kernel.DebugActiveProcess(pid);
 			StartDebugLoop();
 			Kernel.DebugActiveProcessStop(pid);
-		}, TaskCreationOptions.LongRunning);  
+		}, TaskCreationOptions.LongRunning);
 	}
 
-
-	~AttachDebugger()
+	public override void OnRelease()
 	{
+		base.OnRelease();
 		ApiError.Clear();
 		// Kernel.DebugActiveProcessStop(TargetPid);
 
