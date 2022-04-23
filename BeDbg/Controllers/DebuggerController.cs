@@ -33,16 +33,27 @@ public class DebuggerController : ControllerBase
 			return;
 		}
 
-
+		var eventCount = 0;
 		while (true)
 		{
-			if (debugger.DebuggerEventList.Count == 0)
+			var stopCount = debugger.DebuggerEventList.Count;
+
+			if (eventCount == stopCount)
 			{
 				continue;
 			}
 
-			var dbgEvent = debugger.DebuggerEventList.Dequeue();
-			await sender.SendEventAsync(dbgEvent);
+			while (eventCount < stopCount)
+			{
+				DebuggerEvent dbgEvent;
+				lock (debugger.DebuggerEventListLock)
+				{
+					dbgEvent = debugger.DebuggerEventList[eventCount];
+				}
+
+				await sender.SendEventAsync(dbgEvent);
+				eventCount++;
+			}
 		}
 	}
 }
