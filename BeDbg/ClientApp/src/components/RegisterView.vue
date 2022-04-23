@@ -2,7 +2,7 @@
 import { DataFormatter } from '@/util/formatter';
 import { Registers } from '@/dto/thread';
 import { PropType } from 'vue';
-import { NDataTable, NCard, NScrollbar, NList, NLi, NCollapse, NCollapseItem } from 'naive-ui';
+import { NDataTable, NCard, NScrollbar, NCollapse, NCollapseItem } from 'naive-ui';
 
 const props = defineProps({
   registers: {

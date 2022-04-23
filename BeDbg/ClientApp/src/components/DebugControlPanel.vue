@@ -1,13 +1,12 @@
 <script lang="ts" setup>
-import { NCard, NElement, NSpace, NButton, NIcon } from 'naive-ui';
+import { NElement, NButton, NIcon } from 'naive-ui';
 import {
-  StopOutlined,
+  MoreOutlined,
   PauseOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
   ArrowRightOutlined,
   CloseOutlined,
-  ExpandOutlined,
 } from '@vicons/antd';
 </script>
 
@@ -52,7 +51,7 @@ import {
       <n-button quaternary title="其他功能">
         <template #icon>
           <n-icon size="20">
-            <expand-outlined />
+            <more-outlined />
           </n-icon>
         </template>
       </n-button>

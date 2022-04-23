@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { effect, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useNotification, NList, NLi, NScrollbar, NCode, NSpin, NLayoutSider, NLayoutContent } from 'naive-ui';
-import { Api } from '@/api';
-import { DebuggerEventSource } from '@/util/debuggerEventSource';
+import { NList, NLi, NScrollbar, NCode, NSpin } from 'naive-ui';
 import { DataFormatter } from '@/util/formatter';
-import DebugViewSider from '@/components/DebugViewSider.vue';
-import { provideDebuggerEventSource } from '@/hooks/useDebuggerEvent';
-import { useDebugData, WinProcess, WinThread } from '@/hooks/useDebugData';
+import { useDebugData } from '@/hooks/useDebugData';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 
 const debugData = useDebugData();

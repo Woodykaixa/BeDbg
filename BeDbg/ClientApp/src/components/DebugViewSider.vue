@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { effect, onMounted, reactive, ref } from 'vue';
+import { effect, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNotification, NScrollbar, NCollapse, NCollapseItem, NButton } from 'naive-ui';
+import { useNotification, NScrollbar, NCollapse, NCollapseItem } from 'naive-ui';
 import { DataFormatter } from '@/util/formatter';
 import type { ProcessModule, ProcessMemoryPage } from '@/dto/process';
 import { Api } from '@/api';
 import type { ErrorResponse } from '@/dto/error';
-import RegisterSiderView from './RegisterSiderView.vue';
-import { DefaultEmptyRegisters } from '@/dto/thread';
 import { useDebugData } from '@/hooks/useDebugData';
 
 const debugData = useDebugData();
