@@ -29,15 +29,12 @@ const debugData = useDebugData();
 <style scoped>
 .debug-container {
   box-sizing: border-box;
-  width: 80vw;
-  height: 100vh;
   display: flex;
-  padding: 16px;
   margin: auto;
 }
 
 .dis-asm-box {
-  width: 70%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   font-family: Consolas;
@@ -51,7 +48,6 @@ const debugData = useDebugData();
 }
 
 .dis-asm-instr .address {
-  width: 70%;
   min-width: 150px;
   max-width: 200px;
   text-align: center;

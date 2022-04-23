@@ -17,19 +17,6 @@ const process = reactive({
   pages: [] as (ProcessMemoryPage & { data: string })[],
 });
 
-const registers = ref(DefaultEmptyRegisters);
-
-onMounted(async () => {
-  const { ok, data } = await Api.DebuggingProcess.getRegisters(
-    debugData.mainProcess.id,
-    debugData.mainProcess.mainThread.id
-  );
-  if (ok) {
-    registers.value = data;
-  } else {
-    console.error('fetch register failed', data);
-  }
-});
 const notification = useNotification();
 const router = useRouter();
 
@@ -109,12 +96,12 @@ effect(async () => {
           </div>
         </code>
       </n-collapse-item> -->
-      <n-collapse-item title="寄存器">
+      <!-- <n-collapse-item title="寄存器">
         <register-sider-view :registers="registers" />
-      </n-collapse-item>
-      <n-collapse-item title="其他功能">
+      </n-collapse-item> -->
+      <!-- <n-collapse-item title="其他功能">
         <n-button> 结束调试 </n-button>
-      </n-collapse-item>
+      </n-collapse-item> -->
     </n-collapse>
   </n-scrollbar>
 </template>
