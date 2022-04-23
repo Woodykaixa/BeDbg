@@ -8,6 +8,7 @@ import DebugViewSider from '@/components/DebugViewSider.vue';
 import { provideDebuggerEventSource } from '@/hooks/useDebuggerEvent';
 import { useDebugData, WinProcess, WinThread } from '@/hooks/useDebugData';
 import DebugView from '@/components/DebugView.vue';
+import { useLoadingStates } from '@/hooks/useLoadingStates';
 
 const debuggerEvent = new DebuggerEventSource('/api/debugger/0/event');
 debuggerEvent.addEventListener('notFound', () => {
@@ -15,6 +16,7 @@ debuggerEvent.addEventListener('notFound', () => {
 });
 
 const debugData = useDebugData();
+const loadingStates = useLoadingStates();
 
 const programReady = ref(false);
 
@@ -58,15 +60,18 @@ async function InitializeDebugger() {
   debuggerEvent.addEventListener('exitProgram', stopDebug);
 
   debuggerEvent.addEventListener('programReady', async () => {
+    loadingStates.debuggerReady = true;
     // updateRegisters();
     programReady.value = true;
     debuggerEvent.addEventListenerOnce('exception', async exception => {
       console.log(exception);
+      loadingStates.disassemblyState = 'loading';
       const { ok, data } = await Api.DebuggingProcess.disassemble(
         debugData.mainProcess.id,
         exception.exceptionAddress + 1
       );
       if (ok) {
+        loadingStates.disassemblyState = 'ready';
         debugData.mainProcess.mainThread.instructions = data.map(i => ({
           address: i.ip,
           text: i.text,

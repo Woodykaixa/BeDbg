@@ -6,9 +6,10 @@ import { useDebugData } from '@/hooks/useDebugData';
 import { DefaultEmptyRegisters } from '@/dto/thread';
 import { ref, onMounted } from 'vue';
 import { Api } from '@/api';
+import { useLoadingStates } from '@/hooks/useLoadingStates';
 
 const debugData = useDebugData();
-
+const loadingStates = useLoadingStates();
 const registers = ref(DefaultEmptyRegisters);
 
 onMounted(async () => {
