@@ -12,14 +12,14 @@ const loadingStates = useLoadingStates();
   <div class="debug-container">
     <n-list class="dis-asm-box" bordered>
       <template #header> 反汇编 </template>
-      <n-spin :show="loadingStates.disassemblyState === 'loading'">
-        <n-scrollbar>
+      <n-scrollbar>
+        <n-spin :show="loadingStates.disassemblyState === 'loading'">
           <n-li v-for="i in debugData.mainProcess.mainThread.instructions" class="dis-asm-instr">
             <div class="address">{{ DataFormatter.formatNumberHex(i.address) }}</div>
             <n-code :code="i.text" language="x86asm" />
           </n-li>
-        </n-scrollbar>
-      </n-spin>
+        </n-spin>
+      </n-scrollbar>
     </n-list>
   </div>
 </template>
