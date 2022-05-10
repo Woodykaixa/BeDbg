@@ -7,10 +7,11 @@
 
 namespace BeDbgApi::Debug
 {
-    enum class DebugContinueStatus : bool
+    enum class DebugContinueStatus: std::uint8_t
     {
-        Continue = true,
-        NotHandled = false
+        AutoContinue = 0,
+        NotHandled = 1,
+        WaitForExplicitContinue = 2
     };
 
     template <typename TInfo = decltype(DEBUG_EVENT::u)>
@@ -43,4 +44,5 @@ namespace BeDbgApi::Debug
     }
 
     BEDBG_API DebugContinueStatus DebugLoopWaitEvent(Type::handle_t<DebugLoopCallbacks> callbacks);
+
 }

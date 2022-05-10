@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using BeDbg.Api;
 
 namespace BeDbg.Debugger;
@@ -44,7 +45,7 @@ public class CreateDebugger : BaseDebugger
 		base.OnRelease();
 		if (!Kernel.TerminateProcess(new IntPtr(TargetHandle), 0))
 		{
-			throw new Exception("Cannot terminate process");
+			throw new Win32Exception();
 		}
 
 		Kernel.CloseHandle(new IntPtr(TargetHandle));

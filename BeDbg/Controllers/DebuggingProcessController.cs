@@ -106,5 +106,31 @@ namespace BeDbg.Controllers
 
 			return Ok(debugger.GetRegisters(tid));
 		}
+
+		[HttpPost("step_in/{pid:int}")]
+		public ActionResult StepIn(int pid, [FromQuery] int tid)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			debugger.StepIn(tid);
+			return Ok();
+		}
+
+		[HttpPost("continue/{pid:int}")]
+		public ActionResult Continue(int pid, [FromQuery] int tid)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			debugger.Continue(tid);
+			return Ok();
+		}
 	}
 }

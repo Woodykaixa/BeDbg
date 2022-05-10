@@ -52,7 +52,7 @@ DebugContinueStatus Internal::dispatchDebugEvent(const DEBUG_EVENT* event,
     const auto cb = cbArr[eventCode - 1];
     if (cb == nullptr)
     {
-        return DebugContinueStatus::Continue;
+        return DebugContinueStatus::AutoContinue;
     }
     return cb(event->dwProcessId, event->dwThreadId, &event->u);
 }
@@ -70,7 +70,11 @@ DebugContinueStatus BeDbgApi::Debug::DebugLoopWaitEvent(const Type::handle_t<Deb
         return DebugContinueStatus::NotHandled;
     }
     const auto result = Internal::dispatchDebugEvent(&event, callbacks);
-    const auto debugStatusCode = result == DebugContinueStatus::Continue ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED;
+    if (result == DebugContinueStatus::WaitForExplicitContinue) {
+        return result;
+    }
+    const auto debugStatusCode = result == DebugContinueStatus::AutoContinue ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED;
     ContinueDebugEvent(event.dwProcessId, event.dwThreadId, debugStatusCode);
     return result;
 }
+

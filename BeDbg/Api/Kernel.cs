@@ -51,5 +51,13 @@ namespace BeDbg.Api
 		public static extern bool GetFinalPathNameByHandle(IntPtr handle,
 			[Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder filePath, uint size,
 			uint flags);
+
+		[DllImport(InteropConfig.Kernel, EntryPoint = "ContinueDebugEvent")]
+		public static extern bool ContinueDebugEvent(int pid, int tid, uint continueFlag);
+
+		[DllImport(InteropConfig.Kernel)]
+		public static extern int GetLastError();
+
+		public const uint DbgContinue = (0x00010002);
 	}
 }

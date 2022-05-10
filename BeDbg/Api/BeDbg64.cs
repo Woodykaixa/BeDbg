@@ -166,4 +166,10 @@ public class BeDbg64
 	[DllImport(InteropConfig.Api64, EntryPoint = "GetThreadRegisters")]
 	public static extern unsafe void GetThreadRegisters(IntPtr thread,
 		Registers* reg);
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "GetThreadContextFlag")]
+	public static extern uint GetThreadContextFlag(IntPtr threadHandle);
+
+	[DllImport(InteropConfig.Api64, EntryPoint = "SetThreadContextFlag")]
+	public static extern bool SetThreadContextFlag(IntPtr threadHandle, uint flag);
 }

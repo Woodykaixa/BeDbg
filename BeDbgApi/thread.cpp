@@ -1,5 +1,10 @@
 #include "thread.h"
+
 #include <Windows.h>
+
+#include <fmt/xchar.h>
+
+#include "error.h"
 
 void BeDbgApi::Thread::GetThreadRegisters(Type::sys_handle_t thread, _Out_ Registers* reg)
 {
@@ -36,4 +41,44 @@ void BeDbgApi::Thread::GetThreadRegisters(Type::sys_handle_t thread, _Out_ Regis
     memcpy(&reg->st7, &ctx.FltSave.FloatRegisters[7], sizeof(Type::uint128_t));
 
     memcpy(&reg->xmm, ctx.FltSave.XmmRegisters, sizeof(Type::uint128_t) * 16);
+}
+
+std::uint32_t BeDbgApi::Thread::GetThreadContextFlag(const Type::sys_handle_t threadHandle)
+{
+    CONTEXT context{};
+    context.ContextFlags = CONTEXT_CONTROL;
+    if (!GetThreadContext(threadHandle, &context))
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = fmt::format(L"GetThreadContext return false")
+        };
+    }
+    return context.EFlags;
+}
+
+bool BeDbgApi::Thread::SetThreadContextFlag(const Type::sys_handle_t threadHandle, const std::uint32_t flag)
+{
+    CONTEXT context{};
+    context.ContextFlags = CONTEXT_CONTROL;
+    if (!GetThreadContext(threadHandle, &context))
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = fmt::format(L"GetThreadContext return false")
+        };
+    }
+    context.EFlags = flag;
+    const auto result = SetThreadContext(threadHandle, &context);
+    if (!result)
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = fmt::format(L"SetThreadContext return false")
+        };
+    }
+    return result;
 }

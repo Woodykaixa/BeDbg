@@ -32,7 +32,7 @@ TEST_F(DispatchDebugEvent, cbName) \
     { \
         EXPECT_EQ(pid, testPid); \
         EXPECT_EQ(tid, testTid); \
-        return Debug::DebugContinueStatus::Continue; \
+        return Debug::DebugContinueStatus::AutoContinue; \
     }); \
     const DEBUG_EVENT event \
     { \
@@ -42,7 +42,7 @@ TEST_F(DispatchDebugEvent, cbName) \
         .u = {} \
     }; \
     const auto result = Debug::Internal::dispatchDebugEvent(&event, _cb); \
-    EXPECT_EQ(result, Debug::DebugContinueStatus::Continue); \
+    EXPECT_EQ(result, Debug::DebugContinueStatus::AutoContinue); \
     EXPECT_FALSE(Error::HasError());\
 }
 

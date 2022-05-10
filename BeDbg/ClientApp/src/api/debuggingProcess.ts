@@ -71,4 +71,30 @@ export const DebuggingProcess = {
   async getRegisters(pid: number, tid: number) {
     return apiRequestWrapper<Registers>(fetch('/api/debuggingProcess/regs/' + pid + '?tid=' + tid));
   },
+
+  async stepIn(pid: number, tid: number) {
+    return apiRequestWrapper<void>(
+      fetch('/api/debuggingProcess/step_in/' + pid + '?tid=' + tid, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+      }),
+      true
+    );
+  },
+
+  async continue(pid: number, tid: number) {
+    return apiRequestWrapper<void>(
+      fetch('/api/debuggingProcess/continue/' + pid + '?tid=' + tid, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+      }),
+      true
+    );
+  },
 } as const;

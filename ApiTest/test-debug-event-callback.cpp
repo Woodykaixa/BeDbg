@@ -44,9 +44,9 @@ TEST_F(DebugEventCallback, cbName) \
                                                             const auto* info) \
     { \
         testData.cbName = test; \
-        return Debug::DebugContinueStatus::Continue; \
+        return Debug::DebugContinueStatus::AutoContinue; \
     }); \
-    EXPECT_TRUE(static_cast<bool>(_cb->cbName(0, 0, nullptr))); \
+    EXPECT_EQ(_cb->cbName(0, 0, nullptr), Debug::DebugContinueStatus::AutoContinue); \
     EXPECT_EQ(testData.cbName, test); \
     testData.cbName = 0; \
 }

@@ -60,4 +60,7 @@ namespace BeDbgApi::Thread
 
 
     BEDBG_API void GetThreadRegisters(Type::sys_handle_t thread, _Out_ Registers* reg);
+
+    BEDBG_API std::uint32_t GetThreadContextFlag(Type::sys_handle_t threadHandle);
+    BEDBG_API bool SetThreadContextFlag(Type::sys_handle_t threadHandle, std::uint32_t flag);
 }

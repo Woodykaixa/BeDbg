@@ -4,6 +4,13 @@ using BeDbg.Util;
 
 namespace BeDbg.Debugger;
 
+public enum DebugContinueStatus : byte
+{
+	AutoContinue = 0,
+	NotHandled = 1,
+	WaitForExplicitContinue = 2
+}
+
 /// <summary>
 /// <para>
 ///	Handle <a href="https://docs.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-debug_event">DEBUG_EVENT</a>.
@@ -24,8 +31,11 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <param name="process">Process id comes from <i>DEBUG_EVENT::dwProcessId</i></param>
 	/// <param name="thread">Thread id comes from <i>DEBUG_EVENT::dwThreadId</i></param>
 	/// <param name="info">XXX_DEBUG_INFO struct comes from <i>DEBUG_EVENT::u</i></param>
-	/// <returns><b>true</b> represents DBG_CONTINUE, <b>false</b> represents DBG_EXCEPTION_NOT_HANDLED</returns>
-	public abstract unsafe bool OnException(uint process, uint thread, void* info);
+	/// <returns>
+	/// <b>AutoContinue</b> represents DBG_CONTINUE, <b>NotHandled</b> represents DBG_EXCEPTION_NOT_HANDLED,
+	/// <b>WaitForExplicitContinue</b> represents you should call DebugContinue
+	/// </returns>
+	public abstract unsafe DebugContinueStatus OnException(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles CREATE_THREAD_DEBUG_EVENT
@@ -36,7 +46,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnCreateThread(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnCreateThread(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles CREATE_PROCESS_DEBUG_EVENT
@@ -47,7 +57,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnCreateProcess(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnCreateProcess(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles EXIT_THREAD_DEBUG_EVENT
@@ -58,7 +68,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnExitThread(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnExitThread(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles EXIT_PROCESS_DEBUG_EVENT
@@ -69,7 +79,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnExitProcess(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnExitProcess(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles LOAD_DLL_DEBUG_EVENT
@@ -80,7 +90,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnLoadDll(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnLoadDll(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles UNLOAD_DLL_DEBUG_EVENT
@@ -91,7 +101,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnUnloadDll(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnUnloadDll(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles OUTPUT_DEBUG_STRING_EVENT
@@ -102,7 +112,7 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnOutputDebugString(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnOutputDebugString(uint process, uint thread, void* info);
 
 	/// <summary>
 	/// Handles RIP_EVENT
@@ -113,9 +123,9 @@ public abstract class DebugEventHandler : NeedRelease
 	/// <returns>
 	/// <inheritdoc cref="OnException"/>
 	/// </returns>
-	public abstract unsafe bool OnRip(uint process, uint thread, void* info);
+	public abstract unsafe DebugContinueStatus OnRip(uint process, uint thread, void* info);
 
-	public unsafe delegate bool DebugEventCallback(uint process, uint thread, void* info);
+	public unsafe delegate DebugContinueStatus DebugEventCallback(uint process, uint thread, void* info);
 
 	protected IntPtr CallbackHandle;
 
@@ -153,7 +163,7 @@ public abstract class DebugEventHandler : NeedRelease
 	protected static extern void DestroyDebugLoopCallbacks(IntPtr callbacks);
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "DebugLoopWaitEvent")]
-	protected static extern bool DebugLoopWaitEvent(IntPtr callbacks);
+	protected static extern DebugContinueStatus DebugLoopWaitEvent(IntPtr callbacks);
 
 	public override void OnRelease()
 	{

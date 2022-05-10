@@ -7,6 +7,7 @@ import {
   ArrowUpOutlined,
   ArrowRightOutlined,
   CloseOutlined,
+  PlaySquareOutlined
 } from '@vicons/antd';
 
 import { useDebugData } from '@/hooks/useDebugData';
@@ -35,14 +36,24 @@ const stopDebug = async () => {
 <template>
   <n-element>
     <div justify="center" class="debug-control" align="center">
-      <n-button quaternary type="success" title="暂停程序">
+      <n-button
+        quaternary
+        type="success"
+        title="继续运行"
+        @click="Api.DebuggingProcess.continue(debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
+      >
         <template #icon>
           <n-icon size="20">
-            <pause-outlined />
+            <play-square-outlined />
           </n-icon>
         </template>
       </n-button>
-      <n-button quaternary type="success" title="单步执行 (Step In)">
+      <n-button
+        quaternary
+        type="success"
+        title="单步执行 (Step In)"
+        @click="Api.DebuggingProcess.stepIn(debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
+      >
         <template #icon>
           <n-icon size="20">
             <arrow-down-outlined />

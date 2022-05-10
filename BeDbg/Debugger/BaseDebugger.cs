@@ -1,10 +1,17 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using BeDbg.Api;
 using BeDbg.Dto;
 using BeDbg.Models;
 using Iced.Intel;
 
 namespace BeDbg.Debugger;
+
+internal struct DebugContinueData
+{
+	public bool DebugContinue;
+	public int ContinueThread;
+}
 
 /// <summary>
 /// <para>
@@ -32,6 +39,8 @@ public abstract class BaseDebugger : DebugEventHandler
 
 	private bool _firstException = true; // When debugger handles the first exception, it sends a "programReady" event
 
+	public bool WaitContinueCommand = false;
+
 	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
 
@@ -41,6 +50,8 @@ public abstract class BaseDebugger : DebugEventHandler
 
 	protected Task? _debugLoop;
 	private ulong _rip = 0;
+
+	private DebugContinueData _continueData = new();
 
 	protected bool DoDebugLoop = true;
 
@@ -66,19 +77,19 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		var process = Processes[(uint) TargetPid];
 		var threadHandle = process.Threads[process.MainThread].Handle;
-		if (Kernel.SuspendThread(threadHandle) == uint.MaxValue)
-		{
-			throw new Exception("SuspendThread");
-		}
+		// if (Kernel.SuspendThread(threadHandle) == uint.MaxValue)
+		// {
+		// 	throw new Win32Exception();
+		// }
 
 		unsafe
 		{
 			var registers = stackalloc BeDbg64.Registers[1];
 			BeDbg64.GetThreadRegisters(threadHandle, registers);
-			if (Kernel.ResumeThread(threadHandle) == uint.MaxValue)
-			{
-				throw new Exception("SuspendThread");
-			}
+			// if (Kernel.ResumeThread(threadHandle) == uint.MaxValue)
+			// {
+			// 	throw new Win32Exception();
+			// }
 
 			return *registers;
 		}
@@ -95,15 +106,9 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		MemPages.Clear();
 		MemPages.AddRange(BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle)));
-		for (var i = 0; i < MemPages.Count; i++)
-		{
-			var memPage = MemPages[i];
-			if (memPage.BaseAddress == 0x7FFE0000)
-			{
-				memPage.Info = "KUSER_SHARED_DATA";
-				continue;
-			}
-		}
+		WaitContinueCommand = true;
+		var process = Processes[(uint) TargetPid];
+		Kernel.SuspendThread(process.Threads[process.MainThread].Handle);
 
 		EmitDebuggerEvent(new DebuggerEvent
 		{
@@ -111,11 +116,12 @@ public abstract class BaseDebugger : DebugEventHandler
 		});
 	}
 
-	public override unsafe bool OnException(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnException(uint process, uint thread, void* info)
 	{
 		var exceptionRecord = (ExceptionDebugInfo*) info;
 		if (_firstException)
 		{
+			_firstException = false;
 			OnProgramReady();
 		}
 
@@ -132,10 +138,11 @@ public abstract class BaseDebugger : DebugEventHandler
 				FirstChance = exceptionRecord->dwFirstChance
 			}
 		});
-		return true;
+
+		return DebugContinueStatus.WaitForExplicitContinue;
 	}
 
-	public override unsafe bool OnCreateThread(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnCreateThread(uint process, uint thread, void* info)
 	{
 		var threadInfo = (CreateThreadDebugInfo*) info;
 		Processes[process].Threads[thread] = new ThreadModel(thread, threadInfo->hThread, threadInfo->lpStartAddress,
@@ -151,10 +158,10 @@ public abstract class BaseDebugger : DebugEventHandler
 				ThreadLocalBase = threadInfo->lpThreadLocalBase.ToInt64()
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnCreateProcess(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnCreateProcess(uint process, uint thread, void* info)
 	{
 		var processInfo = (CreateProcessDebugInfo*) info;
 		var currentProcess = new ProcessModel
@@ -192,10 +199,10 @@ public abstract class BaseDebugger : DebugEventHandler
 				StartAddress = processInfo->lpStartAddress.ToInt64()
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnExitThread(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnExitThread(uint process, uint thread, void* info)
 	{
 		var exitCode = ((ExitThreadDebugInfo*) info)->dwExitCode;
 		Processes[process].Threads.Remove(thread);
@@ -209,10 +216,10 @@ public abstract class BaseDebugger : DebugEventHandler
 				ExitCode = exitCode
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnExitProcess(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnExitProcess(uint process, uint thread, void* info)
 	{
 		var exitCode = ((ExitProcessDebugInfo*) info)->dwExitCode;
 		Processes.Remove(process);
@@ -229,7 +236,7 @@ public abstract class BaseDebugger : DebugEventHandler
 
 		if (Processes.Count != 0)
 		{
-			return true;
+			return DebugContinueStatus.AutoContinue;
 		}
 
 		DoDebugLoop = false;
@@ -238,10 +245,10 @@ public abstract class BaseDebugger : DebugEventHandler
 			Event = "exitProgram",
 		});
 
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnLoadDll(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnLoadDll(uint process, uint thread, void* info)
 	{
 		var dll = (LoadDllDebugInfo*) info;
 		var module = new RuntimeModuleModel(dll->hFile, dll->lpImageName, dll->fUnicode)
@@ -261,10 +268,10 @@ public abstract class BaseDebugger : DebugEventHandler
 				BaseOfDll = dll->lpBaseOfDll.ToInt64()
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnUnloadDll(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnUnloadDll(uint process, uint thread, void* info)
 	{
 		var unload = (UnloadDllDebugInfo*) info;
 		Modules.Remove(unload->lpBaseOfDll.ToInt64());
@@ -278,25 +285,25 @@ public abstract class BaseDebugger : DebugEventHandler
 				BaseOfDll = unload->lpBaseOfDll.ToInt64()
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnOutputDebugString(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnOutputDebugString(uint process, uint thread, void* info)
 	{
 		// TODO: handle OutputDebugString Event
 		EmitDebuggerEvent(new DebuggerEvent
 		{
-			Event = "unloadDll",
+			Event = "outputDebugString",
 			Payload = new OutputDebugStringPayload
 			{
 				Process = process,
 				Thread = thread,
 			}
 		});
-		return true;
+		return DebugContinueStatus.AutoContinue;
 	}
 
-	public override unsafe bool OnRip(uint process, uint thread, void* info)
+	public override unsafe DebugContinueStatus OnRip(uint process, uint thread, void* info)
 	{
 		var rip = (RipInfo*) info;
 		Console.Error.WriteLine(
@@ -312,7 +319,7 @@ public abstract class BaseDebugger : DebugEventHandler
 				Type = rip->dwType
 			}
 		});
-		return false;
+		return DebugContinueStatus.NotHandled;
 	}
 
 	// protected void ReadProcessModules()
@@ -328,6 +335,21 @@ public abstract class BaseDebugger : DebugEventHandler
 	// 	var pages = BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle));
 	// 	MemPages.AddRange(pages);
 	// }
+
+	public void StepIn(int threadId)
+	{
+		var process = Processes[(uint) TargetPid];
+		var thread = process.Threads[(uint) threadId];
+		var flag = BeDbg64.GetThreadContextFlag(thread.Handle);
+		BeDbg64.SetThreadContextFlag(thread.Handle, flag | 0x100);
+		Continue(threadId);
+	}
+
+	public void Continue(int threadId)
+	{
+		_continueData.ContinueThread = threadId;
+		_continueData.DebugContinue = true;
+	}
 
 	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
 	{
@@ -369,9 +391,42 @@ public abstract class BaseDebugger : DebugEventHandler
 		// Process.EnterDebugMode();
 		while (DoDebugLoop)
 		{
-			if (!DebugLoopWaitEvent(CallbackHandle))
+			var result = DebugLoopWaitEvent(CallbackHandle);
+			switch (result)
 			{
-				throw ApiError.FormatError();
+				case DebugContinueStatus.NotHandled:
+					throw ApiError.FormatError();
+				case DebugContinueStatus.WaitForExplicitContinue:
+				{
+					_continueData.DebugContinue = false;
+					var waitDebugContinueTask = Task.Factory.StartNew(() =>
+					{
+						while (true)
+						{
+							if (_continueData.DebugContinue)
+							{
+								break;
+							}
+
+							Thread.Sleep(1000);
+						}
+					}, CancellationToken);
+					waitDebugContinueTask.Wait(CancellationToken);
+					if (Kernel.ContinueDebugEvent(TargetPid, _continueData.ContinueThread, Kernel.DbgContinue) == false)
+					{
+						throw new Win32Exception(Kernel.GetLastError());
+					}
+
+					Kernel.ResumeThread(Processes[(uint) TargetPid].Threads[(uint) _continueData.ContinueThread]
+						.Handle);
+
+
+					break;
+				}
+				case DebugContinueStatus.AutoContinue:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 	}
