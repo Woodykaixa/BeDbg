@@ -2,22 +2,23 @@
 import { NElement, NButton, NIcon } from 'naive-ui';
 import {
   MoreOutlined,
-  PauseOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
   ArrowRightOutlined,
   CloseOutlined,
-  PlaySquareOutlined
+  PlaySquareOutlined,
 } from '@vicons/antd';
 
 import { useDebugData } from '@/hooks/useDebugData';
 import { useRouter } from 'vue-router';
 import { useNotification } from 'naive-ui';
 import { Api } from '@/api';
+import { useLoadingStates } from '@/hooks/useLoadingStates';
 
 const debugData = useDebugData();
 const router = useRouter();
 const notification = useNotification();
+const loadingStates = useLoadingStates();
 
 const stopDebug = async () => {
   const { ok, data } = await Api.DebuggingProcess.detachProcess(debugData.mainProcess.id);
@@ -31,6 +32,18 @@ const stopDebug = async () => {
     });
   }
 };
+
+function apiCall<ApiType extends (...args: any[]) => any, ArgTypes extends Parameters<ApiType>, Return extends ReturnType<ApiType>>(
+  api: ApiType,
+  ...args: ArgTypes[]
+): Return {
+  const backup = loadingStates.backupLoadingStates();
+  loadingStates.setAllLoading();
+  const result = api(...args);
+  loadingStates.restoreLoadingStates(backup);
+  return result;
+}
+
 </script>
 
 <template>
@@ -40,7 +53,8 @@ const stopDebug = async () => {
         quaternary
         type="success"
         title="继续运行"
-        @click="Api.DebuggingProcess.continue(debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
+        :disabled="loadingStates.panelState !== 'ready'"
+        @click="apiCall(Api.DebuggingProcess.continue, debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
       >
         <template #icon>
           <n-icon size="20">
@@ -52,7 +66,8 @@ const stopDebug = async () => {
         quaternary
         type="success"
         title="单步执行 (Step In)"
-        @click="Api.DebuggingProcess.stepIn(debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
+        :disabled="loadingStates.panelState !== 'ready'"
+        @click="apiCall(Api.DebuggingProcess.stepIn, debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
       >
         <template #icon>
           <n-icon size="20">
@@ -60,14 +75,14 @@ const stopDebug = async () => {
           </n-icon>
         </template>
       </n-button>
-      <n-button quaternary type="success" title="单步执行 (Step Over)">
+      <n-button quaternary type="success" title="单步执行 (Step Over)" :disabled="loadingStates.panelState !== 'ready'">
         <template #icon>
           <n-icon size="20">
             <arrow-right-outlined />
           </n-icon>
         </template>
       </n-button>
-      <n-button quaternary type="success" title="退出函数 (Step Out)">
+      <n-button quaternary type="success" title="退出函数 (Step Out)" :disabled="loadingStates.panelState !== 'ready'">
         <template #icon>
           <n-icon size="20">
             <arrow-up-outlined />

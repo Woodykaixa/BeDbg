@@ -61,6 +61,7 @@ async function InitializeDebugger() {
 
   debuggerEvent.addEventListener('programReady', async () => {
     loadingStates.debuggerReady = true;
+    loadingStates.panelState = 'ready';
     // updateRegisters();
     programReady.value = true;
     debuggerEvent.addEventListenerOnce('exception', async exception => {

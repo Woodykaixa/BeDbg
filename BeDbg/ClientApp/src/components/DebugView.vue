@@ -4,20 +4,23 @@ import DebugControlPanel from './DebugControlPanel.vue';
 import RegisterView from './RegisterView.vue';
 import { useDebugData } from '@/hooks/useDebugData';
 import { DefaultEmptyRegisters } from '@/dto/thread';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect, watch } from 'vue';
 import { Api } from '@/api';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 import { useRouter } from 'vue-router';
 import { useNotification } from 'naive-ui';
+import { MutationType } from 'pinia';
 
 const debugData = useDebugData();
 const loadingStates = useLoadingStates();
 const registers = ref(DefaultEmptyRegisters);
-const router  = useRouter();
+const router = useRouter();
 const notification = useNotification();
 
-
-onMounted(async () => {
+loadingStates.$subscribe(async (mutation, state) => {
+  if (mutation.type !== MutationType.direct || state.disassemblyState !== 'ready') {
+    return;
+  }
   const { ok, data } = await Api.DebuggingProcess.getRegisters(
     debugData.mainProcess.id,
     debugData.mainProcess.mainThread.id
@@ -28,6 +31,20 @@ onMounted(async () => {
     console.error('fetch register failed', data);
   }
 });
+
+// watch(loadingStates.disassemblyState, async () => {
+//   if (loadingStates.disassemblyState === 'ready') {
+//     const { ok, data } = await Api.DebuggingProcess.getRegisters(
+//       debugData.mainProcess.id,
+//       debugData.mainProcess.mainThread.id
+//     );
+//     if (ok) {
+//       registers.value = data;
+//     } else {
+//       console.error('fetch register failed', data);
+//     }
+//   }
+// });
 </script>
 
 <template>
