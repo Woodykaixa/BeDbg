@@ -21,11 +21,13 @@ loadingStates.$subscribe(async (mutation, state) => {
   if (mutation.type !== MutationType.direct || state.disassemblyState !== 'ready') {
     return;
   }
+  console.log('disassembly ready', state.disassemblyState);
   const { ok, data } = await Api.DebuggingProcess.getRegisters(
     debugData.mainProcess.id,
     debugData.mainProcess.mainThread.id
   );
   if (ok) {
+    console.log('update');
     registers.value = data;
   } else {
     console.error('fetch register failed', data);

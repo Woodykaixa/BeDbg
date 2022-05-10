@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { DataFormatter } from '@/util/formatter';
 import { Registers } from '@/dto/thread';
-import { PropType } from 'vue';
+import { onUpdated, ref, PropType } from 'vue';
 import { NDataTable, NCard, NScrollbar, NCollapse, NCollapseItem } from 'naive-ui';
 
 const props = defineProps({
@@ -51,7 +51,7 @@ type TwoCol<
         : never;
     });
 
-const registerData: {
+type DisplayRegisterType = {
   general: TwoCol<RegData, true>[];
   fpuTagWord: TwoCol<RegDataRange>[];
   fpu: (RegData & { content: number })[];
@@ -62,7 +62,9 @@ const registerData: {
   segment: TwoCol<RegData>[];
   debug: TwoCol<RegData>[];
   eFlags: TwoCol<RegDataRange, true>[];
-} = {
+};
+
+const formatRegisters = () => ({
   general: [
     {
       name1: 'RAX',
@@ -505,7 +507,12 @@ const registerData: {
     },
     { name1: 'ID', value1: extractBits(props.registers.eFlags, 21), range1: '21' },
   ],
-};
+});
+
+const registerData = ref(formatRegisters());
+onUpdated(() => {
+  registerData.value = formatRegisters();
+});
 </script>
 
 <template>
