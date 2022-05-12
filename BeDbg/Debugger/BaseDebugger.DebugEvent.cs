@@ -1,97 +1,32 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using BeDbg.Api;
+﻿using BeDbg.Api;
 using BeDbg.Dto;
-using BeDbg.Models;
-using Iced.Intel;
 
 namespace BeDbg.Debugger;
 
-internal struct DebugContinueData
+public class EmitDebuggerEventArgs : EventArgs
 {
-	public bool DebugContinue;
-	public int ContinueThread;
 }
 
-/// <summary>
-/// <para>
-/// Base debugger type defines common operations and properties for debugging. Inherit this class
-/// to implement a debugger class and hold it in memory database, all network request works on it.
-/// </para>
-///
-/// <para>
-/// If you inherit this class, make sure to initialize debugger resources in constructor and release
-/// in destructor. This behavior looks like RAII in C++.
-/// </para>
-///
-/// <para>
-/// Classes inherited this class: <see cref="CreateDebugger"/>, <see cref="AttachDebugger"/>
-/// </para>
-/// </summary>
-public abstract class BaseDebugger : DebugEventHandler
+public abstract partial class BaseDebugger : DebugEventHandler
 {
-	// Use this CancellationToken to control all threads created by debugger
-	protected readonly CancellationTokenSource CancellationTokenSource = new();
-	public CancellationToken CancellationToken => CancellationTokenSource.Token;
-
-	public List<DebuggerEvent> DebuggerEventList = new(64);
-	public object DebuggerEventListLock = new();
-
 	private bool _firstException = true; // When debugger handles the first exception, it sends a "programReady" event
 
-	public bool WaitContinueCommand = false;
+	private readonly List<Action> _onEmitEventActions = new(2);
 
-	public DateTime StartTime { get; } = DateTime.Now;
-	public int TargetPid { get; internal set; }
+	public event EventHandler<EmitDebuggerEventArgs>? EmitDebuggerEventHandler;
 
-	public long TargetHandle { get; internal set; }
-
-	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; } = new(128);
-
-	protected Task? _debugLoop;
-	private ulong _rip = 0;
-
-	private DebugContinueData _continueData = new();
-
-	protected bool DoDebugLoop = true;
-
-	public Dictionary<uint, ProcessModel> Processes = new(16);
-	public Dictionary<long, RuntimeModuleModel> Modules = new(32);
-
-	public DebuggingProcess TargetProcess => new()
+	protected virtual void OnEmitDebuggerEvent(EmitDebuggerEventArgs e)
 	{
-		AttachTime = StartTime,
-		Handle = TargetHandle,
-		Id = TargetPid
-	};
+		var handler = EmitDebuggerEventHandler;
+		handler?.Invoke(this, e);
+	}
 
 	protected void EmitDebuggerEvent(DebuggerEvent e)
 	{
 		lock (DebuggerEventListLock)
 		{
 			DebuggerEventList.Add(e);
-		}
-	}
-
-	public BeDbg64.Registers GetRegisters(ulong thread)
-	{
-		var process = Processes[(uint) TargetPid];
-		var threadHandle = process.Threads[process.MainThread].Handle;
-		// if (Kernel.SuspendThread(threadHandle) == uint.MaxValue)
-		// {
-		// 	throw new Win32Exception();
-		// }
-
-		unsafe
-		{
-			var registers = stackalloc BeDbg64.Registers[1];
-			BeDbg64.GetThreadRegisters(threadHandle, registers);
-			// if (Kernel.ResumeThread(threadHandle) == uint.MaxValue)
-			// {
-			// 	throw new Win32Exception();
-			// }
-
-			return *registers;
+			OnEmitDebuggerEvent(new EmitDebuggerEventArgs());
 		}
 	}
 
@@ -106,7 +41,6 @@ public abstract class BaseDebugger : DebugEventHandler
 	{
 		MemPages.Clear();
 		MemPages.AddRange(BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle)));
-		WaitContinueCommand = true;
 		var process = Processes[(uint) TargetPid];
 		Kernel.SuspendThread(process.Threads[process.MainThread].Handle);
 
@@ -320,121 +254,5 @@ public abstract class BaseDebugger : DebugEventHandler
 			}
 		});
 		return DebugContinueStatus.NotHandled;
-	}
-
-	// protected void ReadProcessModules()
-	// {
-	// 	// var modules = BeDbg64.QueryProcessModules(new IntPtr(TargetHandle));
-	// 	// Modules.Clear();
-	// 	// Modules.AddRange(modules.Select(m => new RuntimeModuleModel()));
-	// }
-	//
-	// protected void ReadProcessMemoryPages()
-	// {
-	// 	MemPages.Clear();
-	// 	var pages = BeDbg64.QueryProcessMemoryPages(new IntPtr(TargetHandle));
-	// 	MemPages.AddRange(pages);
-	// }
-
-	public void StepIn(int threadId)
-	{
-		var process = Processes[(uint) TargetPid];
-		var thread = process.Threads[(uint) threadId];
-		var flag = BeDbg64.GetThreadContextFlag(thread.Handle);
-		BeDbg64.SetThreadContextFlag(thread.Handle, flag | 0x100);
-		Continue(threadId);
-	}
-
-	public void Continue(int threadId)
-	{
-		_continueData.ContinueThread = threadId;
-		_continueData.DebugContinue = true;
-	}
-
-	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
-	{
-		var buffer = new byte[size];
-		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long) address), buffer, size, out var read);
-		var decoder = Decoder.Create(64, new ByteArrayCodeReader(buffer));
-		decoder.IP = (ulong) address;
-		var endRip = decoder.IP + (uint) read;
-		var instructions = new List<Instruction>();
-		while (decoder.IP < endRip)
-			instructions.Add(decoder.Decode());
-		_rip = decoder.IP;
-
-		var formatter = new NasmFormatter()
-		{
-			Options =
-			{
-				DigitSeparator = null,
-				FirstOperandCharIndex = 0,
-				AddLeadingZeroToHexNumbers = false,
-				AlwaysShowSegmentRegister = true,
-				NasmShowSignExtendedImmediateSize = true
-			}
-		};
-		var output = new StringOutput();
-		return instructions.Where(instr => !instr.IsInvalid).Select(instr =>
-		{
-			formatter.Format(instr, output);
-			return new InstructionModel()
-			{
-				Ip = instr.IP,
-				Text = output.ToStringAndReset()
-			};
-		});
-	}
-
-	protected void DebugLoop()
-	{
-		// Process.EnterDebugMode();
-		while (DoDebugLoop)
-		{
-			var result = DebugLoopWaitEvent(CallbackHandle);
-			switch (result)
-			{
-				case DebugContinueStatus.NotHandled:
-					throw ApiError.FormatError();
-				case DebugContinueStatus.WaitForExplicitContinue:
-				{
-					_continueData.DebugContinue = false;
-					var waitDebugContinueTask = Task.Factory.StartNew(() =>
-					{
-						while (true)
-						{
-							if (_continueData.DebugContinue)
-							{
-								break;
-							}
-
-							Thread.Sleep(1000);
-						}
-					}, CancellationToken);
-					waitDebugContinueTask.Wait(CancellationToken);
-					if (Kernel.ContinueDebugEvent(TargetPid, _continueData.ContinueThread, Kernel.DbgContinue) == false)
-					{
-						throw new Win32Exception(Kernel.GetLastError());
-					}
-
-					Kernel.ResumeThread(Processes[(uint) TargetPid].Threads[(uint) _continueData.ContinueThread]
-						.Handle);
-
-
-					break;
-				}
-				case DebugContinueStatus.AutoContinue:
-					break;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
-	}
-
-	protected void StartDebugLoop()
-	{
-		// Kernel.DebugActiveProcess(TargetPid);
-		DebugLoop();
-		// Kernel.DebugActiveProcessStop(TargetPid);
 	}
 }

@@ -18,7 +18,7 @@ public class AttachDebugger : BaseDebugger
 
 		TargetHandle = handle;
 		TargetPid = pid;
-		_debugLoop = Task.Factory.StartNew(() =>
+		DebugLoopThread = Task.Factory.StartNew(() =>
 		{
 			Kernel.DebugActiveProcess(pid);
 			StartDebugLoop();
@@ -30,7 +30,6 @@ public class AttachDebugger : BaseDebugger
 	{
 		base.OnRelease();
 		ApiError.Clear();
-		// Kernel.DebugActiveProcessStop(TargetPid);
 
 		if (!BeDbg64.DetachProcess(new IntPtr(TargetHandle)))
 		{

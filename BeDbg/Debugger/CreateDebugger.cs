@@ -15,7 +15,7 @@ public class CreateDebugger : BaseDebugger
 
 	public CreateDebugger(string filename, string command, string? env, string? cwd)
 	{
-		_debugLoop = Task.Factory.StartNew(() =>
+		DebugLoopThread = Task.Factory.StartNew(() =>
 		{
 			ApiError.Clear();
 			var pid = startProcess(filename, command, env, cwd);
