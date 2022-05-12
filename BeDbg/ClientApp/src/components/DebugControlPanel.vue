@@ -33,10 +33,11 @@ const stopDebug = async () => {
   }
 };
 
-function apiCall<ApiType extends (...args: any[]) => any, ArgTypes extends Parameters<ApiType>, Return extends ReturnType<ApiType>>(
-  api: ApiType,
-  ...args: ArgTypes[]
-): Return {
+function apiCall<
+  ApiType extends (...args: any[]) => any,
+  ArgTypes extends Parameters<ApiType>,
+  Return extends ReturnType<ApiType>
+>(api: ApiType, ...args: ArgTypes): Return {
   const backup = loadingStates.backupLoadingStates();
   loadingStates.setAllLoading();
   const result = api(...args);
@@ -44,6 +45,21 @@ function apiCall<ApiType extends (...args: any[]) => any, ArgTypes extends Param
   return result;
 }
 
+async function continueProgram(pid: number, tid: number) {
+  const backup = loadingStates.backupLoadingStates();
+  loadingStates.setAllLoading();
+  const { ok, data } = await Api.DebuggingProcess.continue(pid, tid);
+  loadingStates.restoreLoadingStates(backup);
+  if (!ok) {
+    notification.error({
+      title: '继续运行失败',
+      description: data.error,
+      content: data.message,
+    });
+  } else {
+    loadingStates.disassemblyState = 'loading';
+  }
+}
 </script>
 
 <template>
@@ -54,7 +70,7 @@ function apiCall<ApiType extends (...args: any[]) => any, ArgTypes extends Param
         type="success"
         title="继续运行"
         :disabled="loadingStates.panelState !== 'ready'"
-        @click="apiCall(Api.DebuggingProcess.continue, debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
+        @click="apiCall(continueProgram, debugData.mainProcess.id, debugData.mainProcess.mainThread.id)"
       >
         <template #icon>
           <n-icon size="20">
