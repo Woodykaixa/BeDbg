@@ -1,4 +1,5 @@
-﻿using BeDbg.Dto;
+﻿using BeDbg.Debugger;
+using BeDbg.Dto;
 using BeDbg.Services;
 using BeDbg.Util;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,8 @@ public class DebuggerController : ControllerBase
 		var sender = new ServerEventSender();
 		await sender.InitEventAsync(Response);
 
+		var readyEmitEvent = new ManualResetEventSlim(false);
+		var lockThread = false;
 		var debugger = _debugService.FindOneByIndex(index);
 		if (debugger == null)
 		{
@@ -33,13 +36,34 @@ public class DebuggerController : ControllerBase
 			return;
 		}
 
+		EventHandler<EmitDebuggerEventArgs> onEmitDebuggerEventHandler =
+			(object? o, Debugger.EmitDebuggerEventArgs e) =>
+			{
+				if (!lockThread)
+				{
+					return;
+				}
+
+				lockThread = false;
+				readyEmitEvent.Set();
+			};
+
+		debugger.EmitDebuggerEventHandler += onEmitDebuggerEventHandler;
+
 		var eventCount = 0;
 		while (true)
 		{
+			if (lockThread)
+			{
+				readyEmitEvent.Wait();
+			}
+
 			var stopCount = debugger.DebuggerEventList.Count;
 
 			if (eventCount == stopCount)
 			{
+				lockThread = true;
+				readyEmitEvent.Reset();
 				continue;
 			}
 
@@ -53,6 +77,13 @@ public class DebuggerController : ControllerBase
 
 				await sender.SendEventAsync(dbgEvent);
 				eventCount++;
+				if (dbgEvent.Event != "exitProgram")
+				{
+					continue;
+				}
+
+				debugger.EmitDebuggerEventHandler -= onEmitDebuggerEventHandler;
+				break;
 			}
 		}
 	}
