@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import DisassmblyView from './DisassmblyView.vue';
+import DisassmblyView from './disassembly/DisassmblyView.vue';
 import DebugControlPanel from './DebugControlPanel.vue';
 import RegisterView from './RegisterView.vue';
 import { useDebugData } from '@/hooks/useDebugData';
@@ -21,32 +21,11 @@ loadingStates.$subscribe(async (mutation, state) => {
   if (mutation.type !== MutationType.direct || state.disassemblyState !== 'ready') {
     return;
   }
-  console.log('disassembly ready', state.disassemblyState);
-  const { ok, data } = await Api.DebuggingProcess.getRegisters(
-    debugData.mainProcess.id,
-    debugData.mainProcess.mainThread.id
-  );
-  if (ok) {
-    console.log('update');
-    registers.value = data;
-  } else {
+  const { ok, data } = await debugData.updateRegisters(debugData.mainProcess.id, debugData.mainProcess.mainThread.id);
+  if (!ok) {
     console.error('fetch register failed', data);
   }
 });
-
-// watch(loadingStates.disassemblyState, async () => {
-//   if (loadingStates.disassemblyState === 'ready') {
-//     const { ok, data } = await Api.DebuggingProcess.getRegisters(
-//       debugData.mainProcess.id,
-//       debugData.mainProcess.mainThread.id
-//     );
-//     if (ok) {
-//       registers.value = data;
-//     } else {
-//       console.error('fetch register failed', data);
-//     }
-//   }
-// });
 </script>
 
 <template>
@@ -54,7 +33,7 @@ loadingStates.$subscribe(async (mutation, state) => {
     <debug-control-panel class="debug-view_debug-control" />
     <div class="debug-view_content">
       <disassmbly-view class="debug-view_dis-asm-view" />
-      <register-view class="debug-view_register-view" :registers="registers" />
+      <register-view class="debug-view_register-view" :registers="debugData.mainProcess.mainThread.registers" />
     </div>
   </div>
 </template>

@@ -1,49 +1,32 @@
 <script setup lang="ts">
-import { NList, NLi, NScrollbar, NCode, NSpin, NButton } from 'naive-ui';
+import { NList, NLi, NScrollbar, NCode, NSpin, NButton, ScrollbarInst } from 'naive-ui';
 import { DataFormatter } from '@/util/formatter';
 import { useDebugData } from '@/hooks/useDebugData';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 import { computed, h, ref } from 'vue';
 import { VueVirtualScroller } from '@wefly/vue-virtual-scroller';
 import '@wefly/vue-virtual-scroller/dist/style.css';
+import './DisassemblyView.css';
+
+import DisplayingInstruction from './DisplayingInstruction.vue';
 
 const debugData = useDebugData();
 const loadingStates = useLoadingStates();
-const bpAddress = ref(new Set<number>());
-
-const setBreakpoint = async (address: number) => {
-  console.log('setBreakpoint', address);
-  bpAddress.value.add(address);
-};
-
-const removeBreakpoint = async (address: number) => {
-  bpAddress.value.delete(address);
-};
+const asmInstructionList = ref<ScrollbarInst>();
 </script>
 
 <template>
   <div class="debug-container">
     <n-list class="dis-asm-box" bordered>
       <template #header> 反汇编 </template>
-      <n-scrollbar>
+      <n-scrollbar ref="asmInstructionList">
         <n-spin :show="loadingStates.disassemblyState === 'loading'">
           <vue-virtual-scroller
             :list="debugData.mainProcess.mainThread.instructions"
             :activeLen="debugData.mainProcess.mainThread.instructions.length"
           >
             <template v-slot:default="{ item }">
-              <n-li class="dis-asm-instr">
-                <div class="bp-box">
-                  <div
-                    v-if="bpAddress.has(item.address)"
-                    class="bp bp-set"
-                    @click="removeBreakpoint(item.address)"
-                  ></div>
-                  <div v-else class="bp" @click="setBreakpoint(item.address)"></div>
-                </div>
-                <div class="address">{{ DataFormatter.formatNumberHex(item.address) }}</div>
-                <n-code :code="item.text" language="x86asm" />
-              </n-li>
+              <displaying-instruction :address="item.address" :text="item.text" />
             </template>
           </vue-virtual-scroller>
         </n-spin>
@@ -108,7 +91,7 @@ const removeBreakpoint = async (address: number) => {
   opacity: 0.9;
 }
 
-.virtual-scroll {
-  overflow: hidden;
+.breakpoint-hit {
+  background-color: rgba(253, 248, 107, 0.5);
 }
 </style>

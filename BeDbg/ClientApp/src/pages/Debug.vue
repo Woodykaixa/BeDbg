@@ -32,6 +32,7 @@ async function InitializeDebugger() {
       id: e.thread,
       entry: e.startAddress,
       instructions: [],
+      registers: null as any,
     };
 
     const mainProcess: WinProcess = {
@@ -51,6 +52,7 @@ async function InitializeDebugger() {
       id: e.thread,
       entry: e.startAddress,
       instructions: [],
+      registers: null as any,
     };
     // createThread event means it created a new thread on a old process. If both process and thread are created, it will be a createProcess event.
     // Thus we can use '!.' to skip falsy check

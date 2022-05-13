@@ -59,9 +59,16 @@ public abstract partial class BaseDebugger : DebugEventHandler
 			OnProgramReady();
 		}
 
+		var exceptionEvent = exceptionRecord->ExceptionRecord.ExceptionCode switch
+		{
+			0x80000003 => "breakpoint",
+			0x80000004 => "singleStep",
+			_ => "exception"
+		};
+
 		EmitDebuggerEvent(new DebuggerEvent
 		{
-			Event = "exception",
+			Event = exceptionEvent,
 			Payload = new ExceptionPayload
 			{
 				Process = process,

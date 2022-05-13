@@ -1,0 +1,7 @@
+.virtual-scroll {
+  overflow: hidden;
+}
+
+.vue-virtual-list-item {
+  width: 100%;
+}
