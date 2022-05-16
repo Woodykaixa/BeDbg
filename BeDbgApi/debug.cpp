@@ -5,6 +5,7 @@
 #include "error.h"
 
 using namespace BeDbgApi::Debug;
+constexpr static std::uint8_t INT3 = 0xCC;
 
 BeDbgApi::Type::handle_t<DebugLoopCallbacks> BeDbgApi::Debug::CreateDebugLoopCallbacks()
 {
@@ -70,7 +71,8 @@ DebugContinueStatus BeDbgApi::Debug::DebugLoopWaitEvent(const Type::handle_t<Deb
         return DebugContinueStatus::NotHandled;
     }
     const auto result = Internal::dispatchDebugEvent(&event, callbacks);
-    if (result == DebugContinueStatus::WaitForExplicitContinue) {
+    if (result == DebugContinueStatus::WaitForExplicitContinue)
+    {
         return result;
     }
     const auto debugStatusCode = result == DebugContinueStatus::AutoContinue ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED;
@@ -78,3 +80,49 @@ DebugContinueStatus BeDbgApi::Debug::DebugLoopWaitEvent(const Type::handle_t<Deb
     return result;
 }
 
+_Success_(return)
+
+bool BeDbgApi::Debug::SetBreakpoint(const Type::sys_handle_t processHandle, const std::uint64_t address,
+                                    _Out_writes_(1)std::uint8_t* originalCode)
+{
+    std::uint8_t buffer{};
+
+    auto success = ReadProcessMemory(processHandle, reinterpret_cast<void*>(address), &buffer, 1, nullptr);
+    if (!success)
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = L"ReadProcessMemory"
+        };
+        return false;
+    }
+    originalCode[0] = buffer;
+    success = WriteProcessMemory(processHandle, reinterpret_cast<void*>(address), &INT3, 1, nullptr);
+    if (!success)
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = L"WriteProcessMemory"
+        };
+        return false;
+    }
+    return true;
+}
+
+bool BeDbgApi::Debug::RemoveBreakpoint(const Type::sys_handle_t processHandle, const std::uint64_t address,
+                                       const std::uint8_t originalCode)
+{
+    if (const auto success = WriteProcessMemory(processHandle, reinterpret_cast<void*>(address), &originalCode, 1,
+                                                nullptr); !success)
+    {
+        *Error::GetInnerError() = Error::Error{
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
+            .code = GetLastError(),
+            .message = L"WriteProcessMemory"
+        };
+        return false;
+    }
+    return true;
+}

@@ -172,4 +172,12 @@ public class BeDbg64
 
 	[DllImport(InteropConfig.Api64, EntryPoint = "SetThreadContextFlag")]
 	public static extern bool SetThreadContextFlag(IntPtr threadHandle, uint flag);
+
+
+	[DllImport(InteropConfig.Api64)]
+	public static extern bool SetBreakpoint(IntPtr processHandle, ulong address,
+		[Out] out byte originalCode);
+
+	[DllImport(InteropConfig.Api64)]
+	public static extern bool RemoveBreakpoint(IntPtr processHandle, ulong address, byte originalCode);
 }

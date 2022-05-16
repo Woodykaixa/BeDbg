@@ -1,7 +1,7 @@
 import { DebuggerEvents, DebuggerEventTypes } from '@/dto/debuggerEvent';
 
 type DebuggerEvent = typeof DebuggerEventTypes[number];
-type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: DebuggerEvents[EventType]) => void;
+export type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: DebuggerEvents[EventType]) => void;
 
 /**
  * DebuggerEventSource is a class that allows to subscribe to debugger events from server.

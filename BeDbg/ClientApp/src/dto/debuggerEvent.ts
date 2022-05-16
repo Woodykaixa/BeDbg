@@ -55,6 +55,8 @@ export const DebuggerEventTypes = [
   'exitProgram',
   'programReady',
   'notFound',
+  'breakpoint',
+  'singleStep',
 ] as const;
 
 export type DebuggerEvents = {
@@ -70,4 +72,6 @@ export type DebuggerEvents = {
   exitProgram: [];
   programReady: [];
   notFound: [];
+  breakpoint: [ExceptionPayload];
+  singleStep: [ExceptionPayload];
 };

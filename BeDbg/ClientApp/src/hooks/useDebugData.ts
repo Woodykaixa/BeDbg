@@ -30,22 +30,37 @@ export const useDebugData = defineStore('debugData', {
     };
   },
   actions: {
-    setBreakpoint(address: number) {
-      this.breakPoints.add(address);
+    async setBreakpoint(address: number) {
+      const { ok, data } = await Api.Breakpoints.set(this.mainProcess.id, address);
+      if (ok) {
+        this.breakPoints.add(address);
+      }
+      return data;
     },
-    removeBreakpoint(address: number) {
-      this.breakPoints.delete(address);
+    async removeBreakpoint(address: number) {
+      const { ok, data } = await Api.Breakpoints.remove(this.mainProcess.id, address);
+      if (ok) {
+        this.breakPoints.delete(address);
+      }
+      return data;
     },
     async updateRegisters(pid: number, tid: number) {
       const { ok, data } = await Api.DebuggingProcess.getRegisters(pid, tid);
       if (ok) {
         this.process.get(pid)!.threads.get(tid)!.registers = data;
-        console.log('update success')
+        console.log('update success');
         return { ok };
       } else {
-        console.log('update failed')
+        console.log('update failed');
         return { ok, data };
       }
     },
+    async syncBreakpoints() {
+      const { ok, data } = await Api.Breakpoints.list(this.mainProcess.id);
+      if (ok) {
+        this.breakPoints = new Set(data);
+      }
+      return data;
+    }
   },
 });

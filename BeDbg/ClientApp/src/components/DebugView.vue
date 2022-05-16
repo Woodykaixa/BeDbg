@@ -16,16 +16,6 @@ const loadingStates = useLoadingStates();
 const registers = ref(DefaultEmptyRegisters);
 const router = useRouter();
 const notification = useNotification();
-
-loadingStates.$subscribe(async (mutation, state) => {
-  if (mutation.type !== MutationType.direct || state.disassemblyState !== 'ready') {
-    return;
-  }
-  const { ok, data } = await debugData.updateRegisters(debugData.mainProcess.id, debugData.mainProcess.mainThread.id);
-  if (!ok) {
-    console.error('fetch register failed', data);
-  }
-});
 </script>
 
 <template>

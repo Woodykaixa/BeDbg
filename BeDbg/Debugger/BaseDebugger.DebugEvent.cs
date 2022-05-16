@@ -11,9 +11,10 @@ public abstract partial class BaseDebugger : DebugEventHandler
 {
 	private bool _firstException = true; // When debugger handles the first exception, it sends a "programReady" event
 
-	private readonly List<Action> _onEmitEventActions = new(2);
-
 	public event EventHandler<EmitDebuggerEventArgs>? EmitDebuggerEventHandler;
+
+	public List<DebuggerEvent> DebuggerEventList = new(64);
+	public object DebuggerEventListLock = new();
 
 	protected virtual void OnEmitDebuggerEvent(EmitDebuggerEventArgs e)
 	{

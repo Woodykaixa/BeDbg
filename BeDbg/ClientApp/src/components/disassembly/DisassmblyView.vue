@@ -5,14 +5,28 @@ import { useDebugData } from '@/hooks/useDebugData';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 import { computed, h, ref } from 'vue';
 import { VueVirtualScroller } from '@wefly/vue-virtual-scroller';
+import DisplayingInstruction from './DisplayingInstruction.vue';
+import { useDebuggerEventSource } from '@/hooks/useDebuggerEvent';
+import type { DebuggerEventListener } from '@/util/debuggerEventSource';
+
 import '@wefly/vue-virtual-scroller/dist/style.css';
 import './DisassemblyView.css';
-
-import DisplayingInstruction from './DisplayingInstruction.vue';
 
 const debugData = useDebugData();
 const loadingStates = useLoadingStates();
 const asmInstructionList = ref<ScrollbarInst>();
+
+const debuggerEvent = useDebuggerEventSource();
+
+const onBreakpoint: DebuggerEventListener<'breakpoint' | 'singleStep'> = async data => {
+  const { ok, data: err } = await debugData.updateRegisters(data.process, data.thread);
+  if (!ok) {
+    console.error('fetch register failed', err);
+  }
+};
+
+debuggerEvent.addEventListener('breakpoint', onBreakpoint);
+debuggerEvent.addEventListener('singleStep', onBreakpoint);
 </script>
 
 <template>

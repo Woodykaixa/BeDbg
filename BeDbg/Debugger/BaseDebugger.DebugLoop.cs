@@ -21,6 +21,7 @@ public abstract partial class BaseDebugger
 	protected Task? DebugLoopThread;
 	private DebugContinueData _continueData = new();
 
+
 	protected void DebugLoop()
 	{
 		while (DoDebugLoop)

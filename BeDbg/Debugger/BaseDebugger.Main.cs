@@ -27,9 +27,6 @@ public abstract partial class BaseDebugger
 	protected readonly CancellationTokenSource CancellationTokenSource = new();
 	public CancellationToken CancellationToken => CancellationTokenSource.Token;
 
-	public List<DebuggerEvent> DebuggerEventList = new(64);
-	public object DebuggerEventListLock = new();
-
 	public DateTime StartTime { get; } = DateTime.Now;
 	public int TargetPid { get; internal set; }
 
@@ -37,11 +34,10 @@ public abstract partial class BaseDebugger
 
 	public List<BeDbg64.ProcessMemoryBlockInformation> MemPages { get; } = new(128);
 
-	private ulong _rip = 0;
-
-
 	public Dictionary<uint, ProcessModel> Processes = new(16);
 	public Dictionary<long, RuntimeModuleModel> Modules = new(32);
+
+	private Dictionary<ulong, byte> _breakpointValues = new(64);
 
 	public DebuggingProcess TargetProcess => new()
 	{
@@ -49,7 +45,6 @@ public abstract partial class BaseDebugger
 		Handle = TargetHandle,
 		Id = TargetPid
 	};
-
 
 	public BeDbg64.Registers GetRegisters(ulong thread)
 	{
@@ -88,6 +83,40 @@ public abstract partial class BaseDebugger
 	// 	MemPages.AddRange(pages);
 	// }
 
+	public bool HasBreakpoint(ulong address) => _breakpointValues.ContainsKey(address);
+
+	public IEnumerable<ulong> ListBreakpoints() => _breakpointValues.Keys;
+
+	public void SetBreakpoint(ulong address)
+	{
+		if (HasBreakpoint(address))
+		{
+			return;
+		}
+
+		if (!BeDbg64.SetBreakpoint(new IntPtr(TargetHandle), address, out var originalCode))
+		{
+			throw ApiError.FormatError();
+		}
+
+		_breakpointValues[address] = originalCode;
+	}
+
+	public void RemoveBreakpoint(ulong address)
+	{
+		if (!HasBreakpoint(address))
+		{
+			return;
+		}
+
+		if (!BeDbg64.RemoveBreakpoint(new IntPtr(TargetHandle), address, _breakpointValues[address]))
+		{
+			throw ApiError.FormatError();
+		}
+
+		_breakpointValues.Remove(address);
+	}
+
 	public void StepIn(int threadId)
 	{
 		var process = Processes[(uint) TargetPid];
@@ -106,6 +135,7 @@ public abstract partial class BaseDebugger
 	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
 	{
 		var buffer = new byte[size];
+
 		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long) address), buffer, size, out var read);
 		var decoder = Decoder.Create(64, new ByteArrayCodeReader(buffer));
 		decoder.IP = (ulong) address;
@@ -113,7 +143,6 @@ public abstract partial class BaseDebugger
 		var instructions = new List<Instruction>();
 		while (decoder.IP < endRip)
 			instructions.Add(decoder.Decode());
-		_rip = decoder.IP;
 
 		var formatter = new NasmFormatter()
 		{

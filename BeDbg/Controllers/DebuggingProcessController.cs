@@ -132,5 +132,55 @@ namespace BeDbg.Controllers
 			debugger.Continue(tid);
 			return Ok();
 		}
+
+		[HttpGet("bp/{pid:int}/{address:long}")]
+		public ActionResult<bool> HasBreakpoint(int pid, long address)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(debugger.HasBreakpoint((ulong) address));
+		}
+
+		[HttpGet("bp/{pid:int}")]
+		public ActionResult<IEnumerable<ulong>> ListBreakpoint(int pid)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(debugger.ListBreakpoints());
+		}
+
+		[HttpPost("bp/{pid:int}")]
+		public ActionResult SetBreakpoint(int pid, [FromBody] ulong address)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return NotFound();
+			}
+
+			debugger.SetBreakpoint(address);
+			return Ok();
+		}
+
+		[HttpDelete("bp/{pid:int}")]
+		public ActionResult RemoveBreakpoint(int pid, [FromBody] long address)
+		{
+			var debugger = _debugService.FindOneByPid(pid);
+			if (debugger == null)
+			{
+				return BadRequest();
+			}
+
+			debugger.RemoveBreakpoint((ulong) address);
+			return Ok();
+		}
 	}
 }

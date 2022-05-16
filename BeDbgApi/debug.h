@@ -45,4 +45,9 @@ namespace BeDbgApi::Debug
 
     BEDBG_API DebugContinueStatus DebugLoopWaitEvent(Type::handle_t<DebugLoopCallbacks> callbacks);
 
+    _Success_(return)
+    BEDBG_API bool SetBreakpoint(Type::sys_handle_t processHandle, std::uint64_t address,
+                                 _Out_writes_(1) std::uint8_t* originalCode);
+
+    BEDBG_API bool RemoveBreakpoint(Type::sys_handle_t processHandle, std::uint64_t address, std::uint8_t originalCode);
 }

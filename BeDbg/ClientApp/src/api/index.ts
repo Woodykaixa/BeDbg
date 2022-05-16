@@ -2,8 +2,11 @@ import { ErrorResponse } from '@/dto/error';
 import { DirectoryModel, FileModel } from '@/dto/fs';
 import { ProcessModel } from '../dto/process';
 import { DebuggingProcess } from './debuggingProcess';
+import { Breakpoints } from './breakpoints';
+
 export const Api = {
   DebuggingProcess,
+  Breakpoints,
   async getProcessList() {
     const response = await fetch('/api/process');
     if (response.ok) {

@@ -20,6 +20,11 @@ const loadingStates = useLoadingStates();
 
 const programReady = ref(false);
 
+debuggerEvent.addEventListenerOnce('programReady', () => {
+  programReady.value = true;
+  console.log('probram ready ref', programReady.value);
+});
+
 provideDebuggerEventSource(debuggerEvent);
 
 const router = useRouter();
@@ -60,27 +65,30 @@ async function InitializeDebugger() {
   });
 
   debuggerEvent.addEventListener('exitProgram', stopDebug);
-
+  debuggerEvent.addEventListenerOnce('breakpoint', async exception => {
+    loadingStates.disassemblyState = 'loading';
+    loadingStates.panelState = 'ready';
+    const { ok, data } = await Api.DebuggingProcess.disassemble(
+      debugData.mainProcess.id,
+      exception.exceptionAddress + 1
+    );
+    if (ok) {
+      loadingStates.disassemblyState = 'ready';
+      debugData.mainProcess.mainThread.instructions = data.map(i => ({
+        address: i.ip,
+        text: i.text,
+      }));
+    }
+  });
+  debuggerEvent.addEventListenerOnce('breakpoint', async exception => {
+    await debugData.updateRegisters(exception.process, exception.thread);
+  });
   debuggerEvent.addEventListener('programReady', async () => {
     loadingStates.debuggerReady = true;
     loadingStates.panelState = 'ready';
+    console.log('program ready');
     // updateRegisters();
-    programReady.value = true;
-    debuggerEvent.addEventListenerOnce('exception', async exception => {
-      console.log(exception);
-      loadingStates.disassemblyState = 'loading';
-      const { ok, data } = await Api.DebuggingProcess.disassemble(
-        debugData.mainProcess.id,
-        exception.exceptionAddress + 1
-      );
-      if (ok) {
-        loadingStates.disassemblyState = 'ready';
-        debugData.mainProcess.mainThread.instructions = data.map(i => ({
-          address: i.ip,
-          text: i.text,
-        }));
-      }
-    });
+    debugData.syncBreakpoints();
 
     debuggerEvent.addEventListener('exception', exception => {
       console.error('exception', exception);
@@ -133,7 +141,7 @@ const stopDebug = async () => {
 <template>
   <n-layout has-sider>
     <n-layout-sider
-      collapse-mode="width"
+      collapse-mode="transform"
       :collapsed-width="0"
       :width="800"
       show-trigger="arrow-circle"
