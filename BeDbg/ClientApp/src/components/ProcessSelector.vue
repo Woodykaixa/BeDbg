@@ -26,7 +26,6 @@ const router = useRouter();
 const debugProcess = async () => {
   sessionStorage.setItem('debugPid', selectedPid.value.toString(10));
   const result = await Api.DebuggingProcess.attachProcess(selectedPid.value);
-  console.log('attach result', result);
   router.push('/debug');
 };
 </script>

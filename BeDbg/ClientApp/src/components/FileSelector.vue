@@ -45,7 +45,6 @@ const requestFileList = (dir?: string) => {
     loading.value = true;
     targetFile.value = '';
     const { data, ok } = await Api.getFileList(dir);
-    console.log(data, ok);
     errorData.hasError = !ok;
     loading.value = false;
     if (ok) {
@@ -63,7 +62,6 @@ onMounted(requestFileList);
 
 const clickBreadcrumb = (index: number) => {
   const path = folders.value.slice(0, index + 1).join('\\');
-  console.log('request path', path);
   requestFileList(path);
 };
 
