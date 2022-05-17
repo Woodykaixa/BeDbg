@@ -4,8 +4,10 @@ import ProcessSelector from '@/components/ProcessSelector.vue';
 import FileSelector from '@/components/FileSelector.vue';
 import { effect, reactive, ref } from 'vue';
 import { Api } from '@/api';
+import { usePlugin } from '@/hooks/usePlugin';
 const debugPath = window.location.origin + '/debug';
 
+usePlugin();
 const debuggingProcess = reactive({
   length: 0,
   error: false,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotification, NLayout, NLayoutSider, NLayoutContent } from 'naive-ui';
 import { Api } from '@/api';
@@ -9,10 +9,18 @@ import { provideDebuggerEventSource } from '@/hooks/useDebuggerEvent';
 import { useDebugData, WinProcess, WinThread } from '@/hooks/useDebugData';
 import DebugView from '@/components/DebugView.vue';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
+import { usePlugin } from '@/hooks/usePlugin';
 
 const debuggerEvent = new DebuggerEventSource('/api/debugger/0/event');
+const pluginStore = usePlugin();
+
+onUnmounted(() => {
+  pluginStore.removeEventSource();
+});
+
 debuggerEvent.addEventListener('notFound', () => {
   debuggerEvent.close(); // If debugger not present, close the event source
+  pluginStore.removeEventSource();
 });
 
 const debugData = useDebugData();
@@ -22,7 +30,6 @@ const programReady = ref(false);
 
 debuggerEvent.addEventListenerOnce('programReady', () => {
   programReady.value = true;
-  console.log('probram ready ref', programReady.value);
 });
 
 provideDebuggerEventSource(debuggerEvent);
@@ -31,6 +38,7 @@ const router = useRouter();
 const notification = useNotification();
 
 async function InitializeDebugger() {
+  pluginStore.setEventSource(debuggerEvent);
   debuggerEvent.addEventListener('createProcess', e => {
     const mainThread: WinThread = {
       address: e.threadLocalBase,
@@ -86,7 +94,6 @@ async function InitializeDebugger() {
   debuggerEvent.addEventListener('programReady', async () => {
     loadingStates.debuggerReady = true;
     loadingStates.panelState = 'ready';
-    console.log('program ready');
     // updateRegisters();
     debugData.syncBreakpoints();
 

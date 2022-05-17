@@ -7,25 +7,25 @@ export type DebuggerEventListener<EventType extends DebuggerEvent> = (...args: D
  * DebuggerEventSource is a class that allows to subscribe to debugger events from server.
  */
 export class DebuggerEventSource {
-  #eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
-  #eventSource: EventSource;
+  private eventListeners: { [eventType in DebuggerEvent]: DebuggerEventListener<eventType>[] };
+  private eventSource: EventSource;
 
   constructor(url: string) {
-    this.#eventSource = new EventSource(url);
+    this.eventSource = new EventSource(url);
 
-    this.#eventSource.onopen = () => {
+    this.eventSource.onopen = () => {
       console.log('DebuggerEventSource connected');
     };
-    this.#eventSource.onerror = (event: Event) => {
+    this.eventSource.onerror = (event: Event) => {
       console.log('DebuggerEventSource error:', event);
     };
 
-    this.#eventListeners = {} as any; // We intentionally use any here to avoid type errors. Event listener lists are initialized below.
+    this.eventListeners = {} as any; // We intentionally use any here to avoid type errors. Event listener lists are initialized below.
     DebuggerEventTypes.forEach(type => {
-      this.#eventListeners[type] = [];
-      this.#eventSource.addEventListener(type, event => {
+      this.eventListeners[type] = [];
+      this.eventSource.addEventListener(type, event => {
         const payload = JSON.parse(event.data);
-        this.#eventListeners[type].forEach(listener => listener(payload));
+        this.eventListeners[type].forEach(listener => listener(payload));
       });
     });
   }
@@ -36,7 +36,7 @@ export class DebuggerEventSource {
    * @param listener Event listener.
    */
   addEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
-    this.#eventListeners[type].push(listener);
+    this.eventListeners[type].push(listener);
   }
 
   /**
@@ -58,9 +58,9 @@ export class DebuggerEventSource {
    * @param listener Event listener.
    */
   removeEventListener<EventType extends DebuggerEvent>(type: EventType, listener: DebuggerEventListener<EventType>) {
-    const index = this.#eventListeners[type].indexOf(listener);
+    const index = this.eventListeners[type].indexOf(listener);
     if (index >= 0) {
-      this.#eventListeners[type].splice(index, 1);
+      this.eventListeners[type].splice(index, 1);
     }
   }
 
@@ -68,6 +68,6 @@ export class DebuggerEventSource {
    * Close the event source.
    */
   close() {
-    this.#eventSource.close();
+    this.eventSource.close();
   }
 }
