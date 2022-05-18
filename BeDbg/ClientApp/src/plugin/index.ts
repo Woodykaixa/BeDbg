@@ -14,6 +14,8 @@ export namespace BeDbg {
   export type PluginEventContext = {
     api: typeof Api;
     notification: NotificationApi;
+    printOutput: (output: string) => void;
+    printError: (error: string) => void;
   };
 
   type PluginEventHandler<EventType extends DebuggerEvent> = (
@@ -37,5 +39,10 @@ export namespace BeDbg {
     version: string;
     /** Description of your plugin. Introduce your plugin here. */
     description: string;
+
+    /**
+     * Custom functions that will be called from console.
+     */
+    commands?: Record<string, Function>;
   }
 }

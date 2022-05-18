@@ -8,5 +8,15 @@ declare module '*.vue' {
 }
 
 interface Window {
-  beDbg: any;
+  beDbg: {
+    installPlugin: (plugin: any) => void;
+    plugin: Record<
+      string,
+      {
+        commands?: Record<string, Function>;
+        output: object[];
+        error: object[];
+      }
+    >;
+  };
 }

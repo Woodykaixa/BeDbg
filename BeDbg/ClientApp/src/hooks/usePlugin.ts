@@ -1,37 +1,71 @@
 import { BeDbg } from '@/plugin';
 import { defineStore } from 'pinia';
 import { Api } from '@/api';
-import { effect, onUpdated, ref } from 'vue';
+import { effect, onUpdated, Ref, ref, computed } from 'vue';
 import { useNotification } from 'naive-ui';
 import { DebuggerEventSource } from '@/util/debuggerEventSource';
 import { DebuggerEventTypes } from '@/dto/debuggerEvent';
 
 type Plugin = BeDbg.Plugin;
-type PluginEventContext = BeDbg.PluginEventContext;
+
+type PluginMessage = {
+  data: string;
+  time: Date;
+  event: typeof DebuggerEventTypes[number];
+};
+
+type PluginInstance = {
+  output: PluginMessage[];
+  error: PluginMessage[];
+  plugin: Plugin;
+};
 
 type EventHandlerName<PluginKey extends keyof Plugin = keyof Plugin> = PluginKey extends `on${string}`
   ? PluginKey
   : never;
 
+/**
+ * Initialize a global object contains api and commands, thus users can call it from the console.
+ * @param installer
+ */
+function initializeGlobalPluginEnvironment(installer: (plugin: Plugin) => void) {
+  window.beDbg = {
+    installPlugin: installer,
+    plugin: {},
+  };
+}
+
 export const usePlugin = defineStore('BeDbg/Plugin', () => {
-  const plugins = ref([] as Plugin[]);
+  const plugins = ref<PluginInstance[]>([]);
+
   const notification = ref(useNotification());
   onUpdated(() => {
     notification.value = useNotification();
   });
-  const installPluginImpl = (eventSource: DebuggerEventSource, plugin: Plugin) => {
-    console.log('plugin', plugin.name, 'installing');
+
+  const installPluginImpl = (eventSource: DebuggerEventSource, instance: PluginInstance) => {
+    console.log('plugin', instance.plugin.name, 'installing');
 
     DebuggerEventTypes.forEach(eventType => {
       const handlerName = `on${eventType[0].toUpperCase()}${eventType.slice(1)}` as EventHandlerName;
-      const pluginHandler = plugin[handlerName];
+      const pluginHandler = instance.plugin[handlerName];
       if (pluginHandler) {
+        const messagePrinter = (message: string, channel: 'output' | 'error') => {
+          const pluginMessage: PluginMessage = {
+            data: message,
+            time: new Date(),
+            event: eventType,
+          };
+          instance[channel].push(pluginMessage);
+        };
         // @ts-ignore
         eventSource.addEventListener(eventType, payload => {
           pluginHandler(
             {
               api: Api,
               notification: notification.value,
+              printOutput: output => messagePrinter(output, 'output'),
+              printError: output => messagePrinter(output, 'error'),
             },
             // @ts-ignore
             payload
@@ -39,16 +73,23 @@ export const usePlugin = defineStore('BeDbg/Plugin', () => {
         });
       }
     });
+    window.beDbg.plugin[instance.plugin.name] = {
+      output: [],
+      error: [],
+    };
+    if (instance.plugin.commands) {
+      window.beDbg.plugin[instance.plugin.name].commands = instance.plugin.commands;
+    }
 
     notification.value.success({
       title: '插件安装成功',
-      content: `插件 ${plugin.name} 已成功安装，您可以在控制台查看插件的日志。`,
+      content: `插件 ${instance.plugin.name} 已成功安装，您可以在控制台查看插件的日志。`,
       duration: 2000,
     });
   };
 
   const debuggerEventSource = ref<DebuggerEventSource | null>(null);
-  const pluginInstalled = (plugin: Plugin) => plugins.value.some(p => p.name === plugin.name);
+  const pluginInstalled = (plugin: Plugin) => plugins.value.some(p => p.plugin.name === plugin.name);
 
   const installPlugin = (plugin: Plugin) => {
     if (pluginInstalled(plugin)) {
@@ -60,9 +101,14 @@ export const usePlugin = defineStore('BeDbg/Plugin', () => {
       });
       return;
     }
-    plugins.value.push(plugin);
+    const instance: PluginInstance = {
+      plugin,
+      output: [],
+      error: [],
+    };
+    plugins.value.push(instance);
     if (!!debuggerEventSource.value) {
-      installPluginImpl(debuggerEventSource.value as any, plugin);
+      installPluginImpl(debuggerEventSource.value as any, instance);
     }
   };
 
@@ -78,10 +124,7 @@ export const usePlugin = defineStore('BeDbg/Plugin', () => {
   };
 
   effect(() => {
-    // Set installer on global object, thus users can call it from the console.
-    window['beDbg'] = {
-      installPlugin,
-    };
+    initializeGlobalPluginEnvironment(installPlugin);
   });
 
   return {

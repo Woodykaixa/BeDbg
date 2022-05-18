@@ -43,7 +43,7 @@ public class CreateDebugger : BaseDebugger
 	public override void OnRelease()
 	{
 		base.OnRelease();
-		if (!Kernel.TerminateProcess(new IntPtr(TargetHandle), 0))
+		if (!Kernel.TerminateProcess(new IntPtr(TargetHandle), 0) && Kernel.GetLastError() != 0)
 		{
 			throw new Win32Exception();
 		}
