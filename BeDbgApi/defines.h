@@ -7,7 +7,7 @@
 
 #ifndef NDEBUG
 #define TEST_ONLY_API BEDBG_API
-#elif
+#else
 #define TEST_ONLY_API  extern "C"
 #endif
 

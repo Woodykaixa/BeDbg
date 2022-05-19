@@ -7,7 +7,8 @@ const pluginStore = usePlugin();
 
 <template>
   <n-list>
-    <template #header> 插件 </template>
+    <template #header> <div style="font-weight: 600; padding-top: 0;">插件</div> </template>
+    <n-li v-if="pluginStore.plugins.length === 0"> 暂无插件 </n-li>
     <n-li v-for="instance in pluginStore.plugins">
       <n-thing>
         <template #header
