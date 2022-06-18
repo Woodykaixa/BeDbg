@@ -26,6 +26,7 @@
     <PackageReference Include="Iced" Version="1.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.2" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
+    <PackageReference Include="PeNet" Version="2.9.7" />
   </ItemGroup>
 
   <ItemGroup>

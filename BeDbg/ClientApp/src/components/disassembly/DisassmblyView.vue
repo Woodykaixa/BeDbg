@@ -19,10 +19,13 @@ const asmInstructionList = ref<ScrollbarInst>();
 const debuggerEvent = useDebuggerEventSource();
 
 const onBreakpoint: DebuggerEventListener<'breakpoint' | 'singleStep'> = async data => {
-  const { ok, data: err } = await debugData.updateRegisters(data.process, data.thread);
-  if (!ok) {
-    console.error('fetch register failed', err);
-  }
+  await debugData.updateRegisters(data.process, data.thread);
+  console.log('instrList', asmInstructionList.value);
+  const index = debugData.mainProcess.mainThread.instructions.findIndex(i => i.address === data.exceptionAddress);
+  console.log('index', index);
+  asmInstructionList.value?.scrollTo({
+    top: index * 22.4,
+  });
 };
 
 debuggerEvent.addEventListener('breakpoint', onBreakpoint);

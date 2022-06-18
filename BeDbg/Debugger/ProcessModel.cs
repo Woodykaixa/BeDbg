@@ -21,6 +21,7 @@ public class ProcessModel
 	public uint MainThread { get; set; }
 	public Dictionary<uint, ThreadModel> Threads = new(16);
 	public IntPtr Handle { get; set; }
+	public RuntimeModuleModel Executable { get; set; }
 
 	public Span<byte> ReadMemory(IntPtr address, int size)
 	{

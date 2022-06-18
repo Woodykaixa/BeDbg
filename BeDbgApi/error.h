@@ -12,6 +12,9 @@ namespace BeDbgApi::Error
         OK_NO_ERROR,
         SYSTEM,
         DEBUG,
+        PROCESS,
+        THREAD,
+        PATH,
         UNKNOWN
     };
 
@@ -29,4 +32,6 @@ namespace BeDbgApi::Error
     BEDBG_API void ClearError();
     BEDBG_API std::uint64_t GetError();
     BEDBG_API const wchar_t* GetErrorMessage();
+
+    void SetApiParamError(int paramIndex);
 }

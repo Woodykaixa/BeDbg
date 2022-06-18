@@ -106,24 +106,24 @@ public abstract partial class BaseDebugger : DebugEventHandler
 	public override unsafe DebugContinueStatus OnCreateProcess(uint process, uint thread, void* info)
 	{
 		var processInfo = (CreateProcessDebugInfo*) info;
-		var currentProcess = new ProcessModel
-		{
-			Id = process,
-			MainThread = thread,
-			Handle = processInfo->hProcess,
-
-			Threads =
-			{
-				[thread] = new ThreadModel(thread, processInfo->hThread, processInfo->lpStartAddress,
-					processInfo->lpThreadLocalBase)
-			}
-		};
-
 		var module = new RuntimeModuleModel(processInfo->hFile, processInfo->lpImageName, processInfo->fUnicode)
 		{
 			ImageBase = processInfo->lpBaseOfImage,
 			DebugInfoOffset = processInfo->dwDebugInfoFileOffset,
 			DebugInfoSize = processInfo->nDebugInfoSize,
+		};
+
+		var currentProcess = new ProcessModel
+		{
+			Id = process,
+			MainThread = thread,
+			Handle = processInfo->hProcess,
+			Executable = module,
+			Threads =
+			{
+				[thread] = new ThreadModel(thread, processInfo->hThread, processInfo->lpStartAddress,
+					processInfo->lpThreadLocalBase)
+			}
 		};
 
 		Processes[process] = currentProcess;

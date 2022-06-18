@@ -27,7 +27,7 @@ std::uint32_t BeDbgApi::Process::StartProcess(const wchar_t* filename, const wch
     fmt::format_to_n(cmdBuffer, MAX_PATH, L"{}{}", command, '\0');
     const auto success = CreateProcessW(filename, cmdBuffer, nullptr, nullptr, false,
                                         CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP |
-                                        DEBUG_PROCESS | CREATE_DEFAULT_ERROR_MODE,
+                                        DEBUG_ONLY_THIS_PROCESS | CREATE_DEFAULT_ERROR_MODE,
                                         environment, workingDirectory, &startupInfo,
                                         &processInfo);
     if (!success)

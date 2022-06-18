@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 using BeDbg.Debugger;
 using BeDbg.Models;
 
@@ -180,4 +181,9 @@ public class BeDbg64
 
 	[DllImport(InteropConfig.Api64)]
 	public static extern bool RemoveBreakpoint(IntPtr processHandle, ulong address, byte originalCode);
+
+	[DllImport(InteropConfig.Api64, CharSet = CharSet.Unicode)]
+	public static extern bool GetPathFromFileHandle(IntPtr fileHandle,
+		[Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pathBuffer,
+		uint size);
 }

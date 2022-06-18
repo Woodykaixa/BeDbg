@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { Registers } from '@/dto/thread';
 import { Api } from '@/api';
+import { ref, UnwrapRef } from 'vue';
 
 export type X64Instruction = {
   address: number;
@@ -21,46 +22,48 @@ export type WinProcess = {
   mainThread: WinThread;
 };
 
-export const useDebugData = defineStore('debugData', {
-  state: () => {
-    return {
-      breakPoints: new Set<number>(),
-      process: new Map<number, WinProcess>(),
-      mainProcess: undefined as any as WinProcess, // CreateProcess event is always triggers before CreateThread event, thus we force case an undefined value here.
-    };
-  },
-  actions: {
-    async setBreakpoint(address: number) {
-      const { ok, data } = await Api.Breakpoints.set(this.mainProcess.id, address);
-      if (ok) {
-        this.breakPoints.add(address);
-      }
-      return data;
-    },
-    async removeBreakpoint(address: number) {
-      const { ok, data } = await Api.Breakpoints.remove(this.mainProcess.id, address);
-      if (ok) {
-        this.breakPoints.delete(address);
-      }
-      return data;
-    },
-    async updateRegisters(pid: number, tid: number) {
-      const { ok, data } = await Api.DebuggingProcess.getRegisters(pid, tid);
-      if (ok) {
-        this.process.get(pid)!.threads.get(tid)!.registers = data;
-        console.log('update success');
-        return { ok };
-      } else {
-        console.log('update failed');
-        return { ok, data };
-      }
-    },
-    async syncBreakpoints() {
-      const { ok, data } = await Api.Breakpoints.list(this.mainProcess.id);
-      if (ok) {
-        this.breakPoints = new Set(data);
-      }
-      return data;
+export const useDebugData = defineStore('debugData', () => {
+  const breakPoints = ref(new Set<number>());
+  const process = ref(new Map<number, WinProcess>());
+  const mainProcess = ref(undefined as any as WinProcess); // CreateProcess event is always triggers before CreateThread event, thus we force case an undefined value here.
+  const setBreakpoint = async (address: number) => {
+    const { ok, data } = await Api.Breakpoints.set(mainProcess.value.id, address);
+    if (ok) {
+      breakPoints.value.add(address);
     }
-  },
+    return data;
+  };
+  const removeBreakpoint = async (address: number) => {
+    const { ok, data } = await Api.Breakpoints.remove(mainProcess.value.id, address);
+    if (ok) {
+      breakPoints.value.delete(address);
+    }
+    return data;
+  };
+
+  const syncBreakpoints = async () => {
+    const { ok, data } = await Api.Breakpoints.list(mainProcess.value.id);
+    if (ok) {
+      breakPoints.value = new Set(data);
+    }
+    return data;
+  };
+
+  const updateRegisters = async (processId: number, threadId: number) => {
+    const { ok, data } = await Api.DebuggingProcess.getRegisters(processId, threadId);
+    console.log('update registers', ok, data)
+    if (ok) {
+      process.value.get(processId)!.threads.get(threadId)!.registers = data;
+    }
+    return data;
+  };
+  return {
+    breakPoints,
+    process,
+    mainProcess,
+    setBreakpoint,
+    removeBreakpoint,
+    syncBreakpoints,
+    updateRegisters,
+  };
 });

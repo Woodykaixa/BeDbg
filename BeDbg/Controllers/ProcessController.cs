@@ -6,7 +6,7 @@ using BeDbg.Services;
 
 namespace BeDbg.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class ProcessController : ControllerBase
 {

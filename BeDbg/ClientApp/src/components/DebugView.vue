@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import DisassmblyView from './disassembly/DisassmblyView.vue';
 import DebugControlPanel from './DebugControlPanel.vue';
-import RegisterView from './RegisterView.vue';
+import RegisterView from './register/RegisterView.vue';
 import { useDebugData } from '@/hooks/useDebugData';
 import { DefaultEmptyRegisters } from '@/dto/thread';
 import { ref, onMounted, watchEffect, watch } from 'vue';
@@ -9,7 +9,6 @@ import { Api } from '@/api';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 import { useRouter } from 'vue-router';
 import { useNotification } from 'naive-ui';
-import { MutationType } from 'pinia';
 
 const debugData = useDebugData();
 const loadingStates = useLoadingStates();

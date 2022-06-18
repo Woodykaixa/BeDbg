@@ -31,3 +31,11 @@ const wchar_t* BeDbgApi::Error::GetErrorMessage()
 {
     return GetInnerError()->message.c_str();
 }
+
+void BeDbgApi::Error::SetApiParamError(const int paramIndex)
+{
+    auto& code = GetInnerError()->code;
+    auto codeParamPart = code & 0x0000FFFFu;
+    codeParamPart |= (1 << paramIndex);
+    code = 0x00010000 | codeParamPart;
+}

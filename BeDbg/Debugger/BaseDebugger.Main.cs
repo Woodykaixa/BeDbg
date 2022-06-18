@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
+using System.Text;
 using BeDbg.Api;
 using BeDbg.Dto;
 using BeDbg.Models;
 using Iced.Intel;
+using Decoder = Iced.Intel.Decoder;
 
 namespace BeDbg.Debugger;
 
@@ -37,7 +39,7 @@ public abstract partial class BaseDebugger
 	public Dictionary<uint, ProcessModel> Processes = new(16);
 	public Dictionary<long, RuntimeModuleModel> Modules = new(32);
 
-	private Dictionary<ulong, byte> _breakpointValues = new(64);
+	private readonly Dictionary<ulong, byte> _breakpointValues = new(64);
 
 	public DebuggingProcess TargetProcess => new()
 	{
@@ -134,11 +136,33 @@ public abstract partial class BaseDebugger
 
 	public IEnumerable<InstructionModel> Disassemble(ulong address, uint size)
 	{
-		var buffer = new byte[size];
+		var mainProcess = Processes[(uint) TargetPid];
+		var fileHandle = mainProcess.Executable.ImageFile;
 
-		Kernel.ReadProcessMemory(new IntPtr(TargetHandle), new IntPtr((long) address), buffer, size, out var read);
+		var path = new StringBuilder(266);
+		if (!BeDbg64.GetPathFromFileHandle(fileHandle, path, (uint) path.Capacity))
+		{
+			throw ApiError.FormatError();
+		}
+
+		var pe = new PeNet.PeFile(path.ToString());
+		var codeSection = pe.ImageSectionHeaders?.First(section => section.Name == ".text");
+
+		if (codeSection == null)
+		{
+			throw new Exception($"Code section not exist on {path}");
+		}
+
+		var buffer = new byte[3000];
+		Console.WriteLine(
+			$"ImageBase {mainProcess.Executable.ImageBase.ToInt64()}");
+		var codeAddress = (long)address;
+		Kernel.ReadProcessMemory(new IntPtr(TargetHandle),
+			new IntPtr(codeAddress), buffer,
+			3000, out var read);
 		var decoder = Decoder.Create(64, new ByteArrayCodeReader(buffer));
-		decoder.IP = (ulong) address;
+		decoder.IP = (ulong) codeAddress;
+
 		var endRip = decoder.IP + (uint) read;
 		var instructions = new List<Instruction>();
 		while (decoder.IP < endRip)

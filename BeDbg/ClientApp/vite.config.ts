@@ -69,7 +69,7 @@ export default defineConfig({
       '^/api/.*': {
         target: apiUrl,
         changeOrigin: true,
-        rewrite: path => apiUrl + path,
+        rewrite: path => path.replace(/^\/api/, apiUrl),
         headers: {
           Connection: 'keep-alive',
         },

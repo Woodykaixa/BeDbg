@@ -45,7 +45,7 @@ public class CreateDebugger : BaseDebugger
 		base.OnRelease();
 		if (!Kernel.TerminateProcess(new IntPtr(TargetHandle), 0) && Kernel.GetLastError() != 0)
 		{
-			throw new Win32Exception();
+			// throw new Win32Exception();
 		}
 
 		Kernel.CloseHandle(new IntPtr(TargetHandle));

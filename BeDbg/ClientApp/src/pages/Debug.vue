@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotification, NLayout, NLayoutSider, NLayoutContent } from 'naive-ui';
 import { Api } from '@/api';
@@ -10,6 +10,7 @@ import { useDebugData, WinProcess, WinThread } from '@/hooks/useDebugData';
 import DebugView from '@/components/DebugView.vue';
 import { useLoadingStates } from '@/hooks/useLoadingStates';
 import { usePlugin } from '@/hooks/usePlugin';
+import { DefaultEmptyRegisters } from '@/dto/thread';
 
 const debuggerEvent = new DebuggerEventSource('/api/debugger/0/event');
 const pluginStore = usePlugin();
@@ -40,23 +41,26 @@ const notification = useNotification();
 async function InitializeDebugger() {
   pluginStore.setEventSource(debuggerEvent);
   debuggerEvent.addEventListener('createProcess', e => {
-    const mainThread: WinThread = {
+    const mainThread: WinThread = reactive({
       address: e.threadLocalBase,
       id: e.thread,
       entry: e.startAddress,
       instructions: [],
-      registers: null as any,
-    };
+      registers: DefaultEmptyRegisters,
+    });
 
-    const mainProcess: WinProcess = {
+    const mainProcess: WinProcess = reactive({
       id: e.process,
       mainThread,
       threads: new Map([[mainThread.id, mainThread]]),
-    };
+    });
+
     debugData.$patch({
-      mainProcess,
+      mainProcess: mainProcess,
       process: new Map([[e.process, mainProcess]]),
     });
+
+    // Api.DebuggingProcess.disassemble(e.process, e. )
   });
 
   debuggerEvent.addEventListener('createThread', e => {
@@ -65,7 +69,7 @@ async function InitializeDebugger() {
       id: e.thread,
       entry: e.startAddress,
       instructions: [],
-      registers: null as any,
+      registers: DefaultEmptyRegisters,
     };
     // createThread event means it created a new thread on a old process. If both process and thread are created, it will be a createProcess event.
     // Thus we can use '!.' to skip falsy check
@@ -88,8 +92,8 @@ async function InitializeDebugger() {
       }));
     }
   });
-  debuggerEvent.addEventListenerOnce('breakpoint', async exception => {
-    await debugData.updateRegisters(exception.process, exception.thread);
+  debuggerEvent.addEventListenerOnce('breakpoint', exception => {
+    debugData.updateRegisters(exception.process, exception.thread);
   });
   debuggerEvent.addEventListener('programReady', async () => {
     loadingStates.debuggerReady = true;
@@ -147,7 +151,7 @@ const stopDebug = async () => {
 
 <template>
   <n-layout has-sider>
-    <n-layout-sider
+    <!-- <n-layout-sider
       collapse-mode="transform"
       :collapsed-width="0"
       :width="800"
@@ -155,9 +159,9 @@ const stopDebug = async () => {
       content-style="padding: 24px; height:100vh;"
       bordered
       :native-scrollbar="false"
-    >
-      <debug-view-sider v-if="programReady" />
-    </n-layout-sider>
+    > -->
+      <!-- <debug-view-sider v-if="programReady" /> -->
+    <!-- </n-layout-sider> -->
     <n-layout-content>
       <debug-view v-if="programReady" />
     </n-layout-content>

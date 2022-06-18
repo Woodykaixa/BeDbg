@@ -19,6 +19,10 @@ void BeDbgApi::Debug::SetDebugLoopCallback(const Type::handle_t<DebugLoopCallbac
 {
     if (!callbacks)
     {
+        auto* error = Error::GetInnerError();
+        error->exceptionModule = Error::ExceptionModule::DEBUG;
+        Error::SetApiParamError(1);
+        error->message = fmt::format(L"[SetDebugLoopCallback] Unknown eventId {}", eventId);
         return;
     }
 
@@ -43,14 +47,14 @@ DebugContinueStatus Internal::dispatchDebugEvent(const DEBUG_EVENT* event,
     if (eventCode < EXCEPTION_DEBUG_EVENT || eventCode > RIP_EVENT)
     {
         *Error::GetInnerError() = {
-            .exceptionModule = Error::ExceptionModule::DEBUG,
+            .exceptionModule = Error::ExceptionModule::SYSTEM,
             .code = GetLastError(),
             .message = fmt::format(L"[dispatchDebugEvent] Unknown event code {}", eventCode),
         };
         return DebugContinueStatus::NotHandled;
     }
     const auto cbArr = static_cast<DebugEventCallback<>*>(static_cast<void*>(callbacks));
-    const auto cb = cbArr[eventCode - 1];
+    const auto cb = cbArr[eventCode - 1]; 
     if (cb == nullptr)
     {
         return DebugContinueStatus::AutoContinue;
